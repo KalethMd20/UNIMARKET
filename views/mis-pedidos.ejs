@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniMarket — Mis Pedidos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --primary:#4f46e5;--primary-light:#e0e7ff;--accent:#06b6d4;
+      --bg:#f8fafc;--surface:#fff;--border:#e2e8f0;
+      --text:#0f172a;--muted:#64748b;--radius:1rem;
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+    /* NAV */
+    nav{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;padding:0 2rem;height:64px;display:flex;align-items:center;gap:1rem;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+    .nav-logo{display:flex;align-items:center;gap:.5rem;text-decoration:none;flex-shrink:0}
+    .nav-logo span{font-size:1.15rem;font-weight:700;color:var(--primary);letter-spacing:-.02em}
+    .nav-right{margin-left:auto;display:flex;align-items:center;gap:.75rem}
+    .btn-back{background:none;border:1.5px solid var(--border);border-radius:2rem;padding:.4rem 1rem;font-size:.8rem;font-weight:500;color:var(--muted);text-decoration:none;transition:all .2s}
+    .btn-back:hover{border-color:var(--primary);color:var(--primary)}
+    .nav-user{display:flex;align-items:center;gap:.5rem;background:var(--primary-light);color:var(--primary);padding:.4rem .9rem .4rem .5rem;border-radius:2rem;font-size:.8rem;font-weight:600;cursor:pointer;position:relative;user-select:none}
+    .nav-user .avatar{width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700}
+    .nav-user .chevron{font-size:.65rem;margin-left:.2rem;transition:transform .2s}
+    .nav-user.open .chevron{transform:rotate(180deg)}
+    .user-menu{display:none;position:absolute;top:calc(100% + .6rem);right:0;background:var(--surface);border:1px solid var(--border);border-radius:.85rem;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:190px;overflow:hidden;z-index:999;animation:fadeIn .15s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+    .nav-user.open .user-menu{display:block}
+    .user-menu a{display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;font-size:.85rem;font-weight:500;color:var(--text);text-decoration:none;transition:background .15s}
+    .user-menu a:hover{background:var(--bg)}
+    .user-menu .menu-divider{height:1px;background:var(--border);margin:0 .75rem}
+    .user-menu a.danger{color:#ef4444}
+    .user-menu a.danger:hover{background:#fef2f2}
+
+    /* MAIN */
+    main{max-width:860px;margin:0 auto;padding:2rem 1.5rem}
+    .page-header{margin-bottom:2rem}
+    .page-header h1{font-size:1.5rem;font-weight:700;margin-bottom:.3rem}
+    .page-header p{color:var(--muted);font-size:.9rem}
+
+    /* FILTROS */
+    .filtros{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+    .filtro-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:2rem;padding:.35rem .9rem;font-size:.8rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+    .filtro-btn:hover{border-color:var(--primary);color:var(--primary)}
+    .filtro-btn.active{background:var(--primary-light);border-color:var(--primary);color:var(--primary);font-weight:600}
+
+    /* TARJETAS DE PEDIDO */
+    .pedido-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:.85rem;transition:box-shadow .2s,border-color .2s;text-decoration:none;color:var(--text);display:block}
+    .pedido-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);border-color:#c7d2fe}
+
+    .pedido-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;flex-wrap:wrap;gap:.5rem}
+    .pedido-id{font-weight:700;font-size:.95rem}
+    .pedido-fecha{font-size:.8rem;color:var(--muted);margin-left:.35rem}
+
+    .pedido-body{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
+    .pedido-meta{display:flex;flex-direction:column;gap:.3rem}
+    .pedido-meta span{font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:.35rem}
+    .pedido-total{font-size:1.15rem;font-weight:700;color:var(--primary)}
+
+    /* BADGES */
+    .badge{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .75rem;border-radius:2rem;font-size:.74rem;font-weight:600}
+    .badge-pendiente{background:#fef9c3;color:#854d0e}
+    .badge-confirmada{background:#dbeafe;color:#1e40af}
+    .badge-lista_recoger{background:#e0e7ff;color:#4338ca}
+    .badge-entregada{background:#dcfce7;color:#166534}
+    .badge-cancelada{background:#fee2e2;color:#991b1b}
+    .badge-aprobado{background:#dcfce7;color:#166534}
+    .badge-rechazado{background:#fee2e2;color:#991b1b}
+    .badge-pago_pendiente{background:#fef9c3;color:#854d0e}
+
+    /* EMPTY STATE */
+    .empty-state{text-align:center;padding:5rem 2rem;color:var(--muted)}
+    .empty-state .empty-icon{font-size:3.5rem;margin-bottom:1rem}
+    .empty-state h3{font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:.5rem}
+    .empty-state p{font-size:.875rem;margin-bottom:1.5rem}
+    .btn-ir{background:var(--primary);color:#fff;border:none;border-radius:.75rem;padding:.75rem 1.5rem;font-size:.9rem;font-weight:600;text-decoration:none;display:inline-block;transition:background .2s}
+    .btn-ir:hover{background:#4338ca}
+
+    /* CHEVRON CARD */
+    .pedido-arrow{color:var(--muted);font-size:1rem;flex-shrink:0}
+
+    @media(max-width:600px){
+      nav{padding:0 1rem}
+      main{padding:1.25rem 1rem}
+      .pedido-body{flex-direction:column;align-items:flex-start}
+      .pedido-total{font-size:1rem}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/comprador" class="nav-logo">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="9" fill="#4f46e5"/>
+      <path d="M9 12h14M9 16h14M9 20h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="24" cy="20" r="4" fill="#06b6d4" stroke="#fff" stroke-width="1.5"/>
+    </svg>
+    <span>UniMarket</span>
+  </a>
+  <div class="nav-right">
+    <a href="/comprador" class="btn-back">← Volver a tienda</a>
+    <div class="nav-user" id="navUser" onclick="toggleMenu(event)">
+      <div class="avatar"><%= user.nombre.charAt(0).toUpperCase() %></div>
+      <%= user.nombre.split(' ')[0] %>
+      <span class="chevron">▾</span>
+      <div class="user-menu">
+        <a href="/mis-pedidos">📦 Mis pedidos</a>
+        <a href="/perfil">✏️ Mi perfil</a>
+        <div class="menu-divider"></div>
+        <a href="/logout" class="danger">🚪 Cerrar sesión</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="page-header">
+    <h1>📦 Mis Pedidos</h1>
+    <p>Historial de todas tus compras en UniMarket</p>
+  </div>
+
+  <% if (pedidos && pedidos.length > 0) { %>
+
+    <!-- Filtros por estado -->
+    <div class="filtros">
+      <button class="filtro-btn active" onclick="filtrar('todos', this)">🏪 Todos (<%= pedidos.length %>)</button>
+      <button class="filtro-btn" onclick="filtrar('pendiente', this)">🕐 Pendientes</button>
+      <button class="filtro-btn" onclick="filtrar('confirmada', this)">✅ Confirmados</button>
+      <button class="filtro-btn" onclick="filtrar('lista_recoger', this)">📍 Por recoger</button>
+      <button class="filtro-btn" onclick="filtrar('entregada', this)">🎉 Entregados</button>
+      <button class="filtro-btn" onclick="filtrar('cancelada', this)">❌ Cancelados</button>
+    </div>
+
+    <div id="listaPedidos">
+      <% pedidos.forEach(p => { %>
+        <a href="/mis-pedidos/<%= p.id_orden %>" class="pedido-card" data-estado="<%= p.estado %>">
+          <div class="pedido-header">
+            <div>
+              <span class="pedido-id">Pedido #<%= p.id_orden %></span>
+              <span class="pedido-fecha">· <%= new Date(p.fecha_orden).toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}) %></span>
+            </div>
+            <span class="badge badge-<%= p.estado %>">
+              <%= p.estado === 'pendiente'     ? '🕐 Pendiente' :
+                  p.estado === 'confirmada'    ? '✅ Confirmada' :
+                  p.estado === 'lista_recoger' ? '📍 Lista para recoger' :
+                  p.estado === 'entregada'     ? '🎉 Entregada' :
+                                                 '❌ Cancelada' %>
+            </span>
+          </div>
+
+          <div class="pedido-body">
+            <div class="pedido-meta">
+              <span>🛍️ <strong><%= p.total_items %> producto<%= p.total_items != 1 ? 's' : '' %></strong></span>
+              <span>
+                <%= p.modalidad_entrega === 'recogida'
+                    ? '📍 Recogida — ' + (p.punto_nombre || 'campus')
+                    : '🏠 Envío a domicilio' %>
+              </span>
+              <span>💳 <%= p.metodo_pago ? (p.metodo_pago.charAt(0).toUpperCase() + p.metodo_pago.slice(1)) : 'Sin pago registrado' %>
+                <% if (p.estado_pago) { %>
+                  &nbsp;<span class="badge badge-<%= p.estado_pago === 'pendiente' ? 'pago_pendiente' : p.estado_pago %>"><%= p.estado_pago %></span>
+                <% } %>
+              </span>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div class="pedido-total">$<%= Number(p.total).toLocaleString('es-CO') %></div>
+              <span class="pedido-arrow">›</span>
+            </div>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+
+  <% } else { %>
+    <div class="empty-state">
+      <div class="empty-icon">🛒</div>
+      <h3>Aún no tienes pedidos</h3>
+      <p>Explora la tienda y realiza tu primera compra</p>
+      <a href="/comprador" class="btn-ir">Explorar productos</a>
+    </div>
+  <% } %>
+</main>
+
+<script>
+  // Menú usuario
+  function toggleMenu(e) {
+    e.stopPropagation()
+    document.getElementById('navUser').classList.toggle('open')
+  }
+  document.addEventListener('click', () => {
+    document.getElementById('navUser') && document.getElementById('navUser').classList.remove('open')
+  })
+
+  // Filtros
+  function filtrar(estado, btn) {
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'))
+    btn.classList.add('active')
+    document.querySelectorAll('.pedido-card').forEach(card => {
+      card.style.display = (estado === 'todos' || card.dataset.estado === estado) ? 'block' : 'none'
+    })
+  }
+</script>
+</body>
+</html>

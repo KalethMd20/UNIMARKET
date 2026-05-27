@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniMarket — Panel Vendedor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #4f46e5; --primary-light: #e0e7ff;
+      --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
+      --bg: #f8fafc; --surface: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --muted: #64748b; --radius: 1rem;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    nav {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+      padding: 0 2rem; height: 64px;
+      display: flex; align-items: center; gap: 1rem;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; flex-shrink: 0; }
+    .nav-logo span { font-size: 1.15rem; font-weight: 700; color: var(--primary); }
+    .nav-tienda { flex: 1; font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+    .nav-tienda strong { color: var(--text); }
+    .nav-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+    .nav-user { display: flex; align-items: center; gap: 0.5rem; background: var(--primary-light); color: var(--primary); padding: 0.4rem 0.9rem 0.4rem 0.5rem; border-radius: 2rem; font-size: 0.8rem; font-weight: 600; }
+    .avatar { width: 28px; height: 28px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; }
+    .btn-logout { background: none; border: 1.5px solid var(--border); border-radius: 2rem; padding: 0.4rem 1rem; font-size: 0.8rem; font-weight: 500; color: var(--muted); cursor: pointer; text-decoration: none; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+    .btn-logout:hover { border-color: #ef4444; color: #ef4444; }
+
+    main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+    .stat-icon { font-size: 2rem; }
+    .stat-value { font-size: 1.4rem; font-weight: 700; line-height: 1; }
+    .stat-label { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+
+    .tabs { display: flex; gap: 0.25rem; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; }
+    .tab { background: none; border: none; padding: 0.75rem 1.25rem; font-size: 0.875rem; font-weight: 600; color: var(--muted); cursor: pointer; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; display: flex; align-items: center; gap: 0.4rem; }
+    .tab:hover { color: var(--primary); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-count { background: var(--primary-light); color: var(--primary); border-radius: 2rem; padding: 0.1rem 0.5rem; font-size: 0.7rem; }
+    .tab-count.warning { background: #fef9c3; color: #92400e; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+    .section-title { font-size: 1.1rem; font-weight: 700; }
+    .btn-primary { background: var(--primary); color: white; border: none; border-radius: 0.6rem; padding: 0.6rem 1.2rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.2s; display: flex; align-items: center; gap: 0.4rem; }
+    .btn-primary:hover { background: #4338ca; }
+
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--bg); }
+    th { padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    td { padding: 0.875rem 1rem; font-size: 0.875rem; border-top: 1px solid var(--border); vertical-align: middle; }
+    tr:hover td { background: #f8fafc; }
+    .product-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 0.5rem; background: var(--bg); }
+    .pname { font-weight: 600; }
+    .pdesc { font-size: 0.75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+
+    .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 2rem; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+    .badge-activo       { background: #dcfce7; color: #16a34a; }
+    .badge-pendiente    { background: #fef9c3; color: #92400e; }
+    .badge-rechazado    { background: #fee2e2; color: #dc2626; }
+    .badge-confirmada   { background: #dbeafe; color: #1d4ed8; }
+    .badge-entregada    { background: #dcfce7; color: #16a34a; }
+    .badge-cancelada    { background: #fee2e2; color: #dc2626; }
+    .badge-lista_recoger{ background: #ede9fe; color: #6d28d9; }
+    .badge-aprobado     { background: #dcfce7; color: #16a34a; }
+
+    .btn-edit, .btn-del { border: none; border-radius: 0.5rem; padding: 0.35rem 0.7rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+    .btn-edit { background: var(--primary-light); color: var(--primary); margin-right: 0.35rem; }
+    .btn-edit:hover { background: var(--primary); color: white; }
+    .btn-del  { background: #fee2e2; color: var(--danger); }
+    .btn-del:hover { background: var(--danger); color: white; }
+
+    .empty-state { text-align: center; padding: 3rem; color: var(--muted); }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+
+    /* ÓRDENES */
+    .ordenes-lista { display: flex; flex-direction: column; gap: 0.875rem; }
+    .loading-ordenes { text-align: center; color: #94a3b8; padding: 2rem; font-size: 0.875rem; }
+
+    .orden-card { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; background: var(--surface); transition: box-shadow 0.2s; }
+    .orden-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    .orden-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.875rem; }
+    .orden-num { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .orden-comprador { font-size: 0.9rem; font-weight: 600; margin-top: 0.2rem; }
+    .orden-meta-row { font-size: 0.78rem; color: var(--muted); display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.875rem; }
+    .orden-monto { font-size: 1.05rem; font-weight: 700; color: var(--primary); }
+    .orden-estado-badge { border-radius: 2rem; padding: 0.25rem 0.75rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+    .estado-pendiente  { background: #fef9c3; color: #854d0e; }
+    .estado-confirmada { background: #dcfce7; color: #166534; }
+    .estado-entregada  { background: #e0e7ff; color: #3730a3; }
+
+    .orden-acciones { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.875rem; padding-top: 0.875rem; border-top: 1px solid #f1f5f9; }
+    .btn-accion { border: none; border-radius: 0.6rem; padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; }
+    .btn-wa        { background: #dcfce7; color: #166534; } .btn-wa:hover { background: #bbf7d0; }
+    .btn-confirmar { background: var(--primary); color: white; } .btn-confirmar:hover { background: #4338ca; }
+    .btn-entregar  { background: #059669; color: white; }   .btn-entregar:hover  { background: #047857; }
+
+    /* MODALES */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border-radius: 1.25rem; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.25); }
+    .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-header h3 { font-size: 1.1rem; font-weight: 700; }
+    .modal-close { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--muted); }
+    .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 0.75rem; justify-content: flex-end; }
+
+    .field label { display: block; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.4rem; }
+    .field input, .field textarea, .field select { width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid var(--border); border-radius: 0.6rem; font-size: 0.875rem; font-family: 'Inter', sans-serif; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .btn-cancel { background: var(--bg); border: 1.5px solid var(--border); border-radius: 0.6rem; padding: 0.65rem 1.25rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; color: var(--muted); transition: all 0.2s; }
+    .btn-cancel:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-save { background: var(--primary); color: white; border: none; border-radius: 0.6rem; padding: 0.65rem 1.5rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.2s; }
+    .btn-save:hover { background: #4338ca; }
+
+    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) {
+      nav { padding: 0 1rem; }
+      main { padding: 1rem; }
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+      th:nth-child(3), td:nth-child(3) { display: none; }
+      .fields-row { grid-template-columns: 1fr; }
+      .tab span { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/vendedor" class="nav-logo">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="9" fill="#4f46e5"/>
+      <path d="M9 12h14M9 16h14M9 20h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="24" cy="20" r="4" fill="#10b981" stroke="#fff" stroke-width="1.5"/>
+    </svg>
+    <span>UniMarket</span>
+  </a>
+  <div class="nav-tienda">Tienda: <strong><%= perfil.nombre_tienda %></strong></div>
+  <div class="nav-right">
+  <!-- Dropdown de usuario -->
+  <div class="user-menu" style="position:relative">
+    <button class="nav-user" id="userMenuBtn" onclick="toggleUserMenu()"
+      style="cursor:pointer;border:none;font-family:'Inter',sans-serif;gap:0.5rem">
+      <div class="avatar"><%= user.nombre.charAt(0).toUpperCase() %></div>
+      <%= user.nombre.split(' ')[0] %>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5" style="margin-left:2px">
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
+    </button>
+
+    <div id="userDropdown" style="
+        display:none;position:absolute;right:0;top:calc(100% + 0.5rem);
+        background:#fff;border:1px solid var(--border);border-radius:0.75rem;
+        box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:175px;z-index:999;
+        overflow:hidden
+    ">
+      <a href="/perfil" style="
+          display:flex;align-items:center;gap:0.6rem;padding:0.75rem 1rem;
+          text-decoration:none;color:var(--text);font-size:0.875rem;font-weight:500;
+          transition:background 0.15s
+      " onmouseover="this.style.background='#f8fafc'"
+         onmouseout="this.style.background='transparent'">
+        👤 Mi perfil
+      </a>
+      <div style="height:1px;background:var(--border)"></div>
+      <a href="/logout" style="
+          display:flex;align-items:center;gap:0.6rem;padding:0.75rem 1rem;
+          text-decoration:none;color:#ef4444;font-size:0.875rem;font-weight:500;
+          transition:background 0.15s
+      " onmouseover="this.style.background='#fef2f2'"
+         onmouseout="this.style.background='transparent'">
+        🚪 Salir
+      </a>
+    </div>
+  </div>
+</div>
+</nav>
+
+<main>
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📦</div>
+      <div><div class="stat-value"><%= stats.total || 0 %></div><div class="stat-label">Productos</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏷️</div>
+      <div><div class="stat-value"><%= stats.stock_total || 0 %></div><div class="stat-label">Unidades en stock</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🛒</div>
+      <div><div class="stat-value" id="statPendientes">...</div><div class="stat-label">Órdenes pendientes</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div><div class="stat-value">$<%= Number(stats.precio_promedio || 0).toLocaleString('es-CO') %></div><div class="stat-label">Precio promedio</div></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('productos', this)">
+      📦 <span>Mis productos</span>
+      <span class="tab-count"><%= productos.length %></span>
+    </button>
+    <button class="tab" onclick="switchTab('pendientes', this)">
+      🛒 <span>Pendientes</span>
+      <span class="tab-count warning" id="tabCountPendientes">...</span>
+    </button>
+    <button class="tab" onclick="switchTab('confirmadas', this)">
+      💳 <span>Confirmadas</span>
+      <span class="tab-count" id="tabCountConfirmadas">...</span>
+    </button>
+    <button class="tab" onclick="switchTab('entregadas', this)">
+      ✅ <span>Entregadas</span>
+      <span class="tab-count" id="tabCountEntregadas">...</span>
+    </button>
+  </div>
+
+  <!-- TAB: PRODUCTOS -->
+  <div class="tab-panel active" id="tab-productos">
+    <div class="section-header">
+      <h2 class="section-title">Mis productos</h2>
+      <button class="btn-primary" onclick="abrirModalCrear()">➕ Nuevo producto</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (productos && productos.length > 0) { %>
+            <% productos.forEach(p => { %>
+            <tr>
+              <td>
+                <div style="display:flex;align-items:center;gap:0.75rem">
+                  <img class="product-thumb"
+                    src="/uploads/productos/<%= p.imagen %>"
+                    alt="<%= p.nombre_producto %>"
+                    onerror="this.src='https://placehold.co/44x44/e0e7ff/4f46e5?text=📦'">
+                  <div>
+                    <div class="pname"><%= p.nombre_producto %></div>
+                    <div class="pdesc"><%= p.descripcion %></div>
+                  </div>
+                </div>
+              </td>
+              <td><%= p.nombre_categoria || '—' %></td>
+              <td><strong>$<%= Number(p.precio).toLocaleString('es-CO') %></strong></td>
+              <td><%= p.stock %></td>
+              <td><span class="badge badge-<%= p.estado %>"><%= p.estado %></span></td>
+              <td>
+                <button class="btn-edit" onclick="abrirModalEditar(
+                  '<%= p.id_producto %>',
+                  `<%= p.nombre_producto.replace(/`/g, '\\`') %>`,
+                  `<%= (p.descripcion || '').replace(/`/g, '\\`') %>`,
+                  '<%= p.precio %>','<%= p.stock %>','<%= p.id_categoria %>'
+                )">✏️ Editar</button>
+                <button class="btn-del" onclick="confirmarEliminar('<%= p.id_producto %>','<%= p.nombre_producto.replace(/'/g,"\\'") %>')">🗑️</button>
+              </td>
+            </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="6">
+                <div class="empty-state">
+                  <div class="empty-icon">📭</div>
+                  <p>Aún no tienes productos publicados</p>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: PENDIENTES -->
+  <div class="tab-panel" id="tab-pendientes">
+    <div class="section-header">
+      <h2 class="section-title">Órdenes pendientes</h2>
+    </div>
+    <div id="listaPendientes" class="ordenes-lista">
+      <div class="loading-ordenes">Cargando órdenes...</div>
+    </div>
+  </div>
+
+  <!-- TAB: CONFIRMADAS -->
+  <div class="tab-panel" id="tab-confirmadas">
+    <div class="section-header">
+      <h2 class="section-title">Órdenes confirmadas</h2>
+    </div>
+    <div id="listaConfirmadas" class="ordenes-lista">
+      <div class="loading-ordenes">Cargando órdenes...</div>
+    </div>
+  </div>
+
+  <!-- TAB: ENTREGADAS -->
+  <div class="tab-panel" id="tab-entregadas">
+    <div class="section-header">
+      <h2 class="section-title">Órdenes entregadas</h2>
+    </div>
+    <div id="listaEntregadas" class="ordenes-lista">
+      <div class="loading-ordenes">Cargando órdenes...</div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL CREAR -->
+<div class="modal-overlay" id="modalCrear">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>➕ Nuevo producto</h3>
+      <button class="modal-close" onclick="cerrarModal('modalCrear')">✕</button>
+    </div>
+    <form action="/vendedor/crear" method="POST" enctype="multipart/form-data">
+      <div class="modal-body">
+        <div class="field"><label>Nombre del producto</label><input type="text" name="nombre_producto" placeholder="Ej: Cálculo Diferencial — Stewart" required></div>
+        <div class="field"><label>Descripción</label><textarea name="descripcion" placeholder="Describe el estado y características..." required></textarea></div>
+        <div class="fields-row">
+          <div class="field"><label>Precio (COP)</label><input type="number" name="precio" placeholder="45000" min="0" required></div>
+          <div class="field"><label>Stock</label><input type="number" name="stock" placeholder="1" min="0" required></div>
+        </div>
+        <div class="field">
+          <label>Categoría</label>
+          <select name="id_categoria" required>
+            <option value="">— Selecciona —</option>
+            <% categorias.forEach(c => { %>
+              <option value="<%= c.id_categoria %>"><%= c.nombre_categoria %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field"><label>Imagen del producto</label><input type="file" name="imagen" accept="image/jpeg,image/png,image/webp"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="cerrarModal('modalCrear')">Cancelar</button>
+        <button type="submit" class="btn-save">Publicar producto</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" id="modalEditar">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>✏️ Editar producto</h3>
+      <button class="modal-close" onclick="cerrarModal('modalEditar')">✕</button>
+    </div>
+    <form action="/vendedor/editar" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="id_producto" id="edit_id">
+      <div class="modal-body">
+        <div class="field"><label>Nombre del producto</label><input type="text" name="nombre_producto" id="edit_nombre" required></div>
+        <div class="field"><label>Descripción</label><textarea name="descripcion" id="edit_desc" required></textarea></div>
+        <div class="fields-row">
+          <div class="field"><label>Precio (COP)</label><input type="number" name="precio" id="edit_precio" min="0" required></div>
+          <div class="field"><label>Stock</label><input type="number" name="stock" id="edit_stock" min="0" required></div>
+        </div>
+        <div class="field">
+          <label>Categoría</label>
+          <select name="id_categoria" id="edit_categoria" required>
+            <option value="">— Selecciona —</option>
+            <% categorias.forEach(c => { %>
+              <option value="<%= c.id_categoria %>"><%= c.nombre_categoria %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field"><label>Nueva imagen (opcional)</label><input type="file" name="imagen" accept="image/jpeg,image/png,image/webp"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="cerrarModal('modalEditar')">Cancelar</button>
+        <button type="submit" class="btn-save">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<form id="formEliminar" action="/vendedor/eliminar" method="POST" style="display:none">
+  <input type="hidden" name="id_producto" id="del_id">
+</form>
+
+<script>
+  /* TABS */
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+    document.getElementById('tab-' + name).classList.add('active')
+    btn.classList.add('active')
+  }
+
+  /* MODALES */
+  function abrirModalCrear() { document.getElementById('modalCrear').classList.add('open') }
+  function abrirModalEditar(id, nombre, desc, precio, stock, categoria) {
+    document.getElementById('edit_id').value        = id
+    document.getElementById('edit_nombre').value    = nombre
+    document.getElementById('edit_desc').value      = desc
+    document.getElementById('edit_precio').value    = precio
+    document.getElementById('edit_stock').value     = stock
+    document.getElementById('edit_categoria').value = categoria
+    document.getElementById('modalEditar').classList.add('open')
+  }
+  function cerrarModal(id) { document.getElementById(id).classList.remove('open') }
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open') })
+  })
+
+  function confirmarEliminar(id, nombre) {
+    Swal.fire({
+      title: '¿Eliminar producto?',
+      text: `"${nombre}" será eliminado permanentemente`,
+      icon: 'warning', showCancelButton: true,
+      confirmButtonColor: '#ef4444', cancelButtonColor: '#64748b',
+      confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar'
+    }).then(r => {
+      if (r.isConfirmed) {
+        document.getElementById('del_id').value = id
+        document.getElementById('formEliminar').submit()
+      }
+    })
+  }
+
+  /* ÓRDENES VÍA FETCH */
+  async function cargarOrdenes() {
+    try {
+      const res = await fetch('/vendedor/ordenes/data')
+      const data = await res.json()
+
+      renderLista('Pendientes',  data.pendientes  || [])
+      renderLista('Confirmadas', data.confirmadas || [])
+      renderLista('Entregadas',  data.entregadas  || [])
+
+      const cp = (data.pendientes  || []).length
+      const cc = (data.confirmadas || []).length
+      const ce = (data.entregadas  || []).length
+
+      document.getElementById('tabCountPendientes').textContent  = cp
+      document.getElementById('tabCountConfirmadas').textContent = cc
+      document.getElementById('tabCountEntregadas').textContent  = ce
+      document.getElementById('statPendientes').textContent      = cp
+    } catch(e) { console.error('Error cargando órdenes:', e) }
+  }
+
+  function renderLista(tipo, lista) {
+    const el = document.getElementById('lista' + tipo)
+    if (!el) return
+    if (!lista.length) {
+      el.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>No hay órdenes ${tipo.toLowerCase()}</p></div>`
+      return
+    }
+    el.innerHTML = lista.map(o => tarjetaOrden(o, tipo)).join('')
+  }
+
+  function tarjetaOrden(o, tipo) {
+    const fecha = new Date(o.fecha_orden).toLocaleDateString('es-CO',
+      { day: '2-digit', month: 'short', year: 'numeric' })
+    const modalidad = o.modalidad_entrega === 'recogida'
+      ? `📍 ${o.punto_nombre || 'Punto de recogida'}`
+      : `🏠 ${o.direccion_envio || 'Domicilio'}`
+
+    const claseEstado = {
+      pendiente: 'estado-pendiente',
+      confirmada: 'estado-confirmada',
+      entregada: 'estado-entregada'
+    }
+
+    let acciones = ''
+    if (tipo === 'Pendientes') {
+      if (o.metodo_pago === 'transferencia' && o.telefono_comprador) {
+        const msg = encodeURIComponent(`Hola ${o.nombre_comprador}! Recibí tu pedido #${o.id_orden} por $${Number(o.total).toLocaleString('es-CO')}. Por favor envíame el comprobante de transferencia.`)
+        acciones += `<a href="https://wa.me/57${o.telefono_comprador}?text=${msg}" target="_blank" class="btn-accion btn-wa">📲 Pedir comprobante</a>`
+      }
+      acciones += `<button class="btn-accion btn-confirmar" onclick="cambiarEstado(${o.id_orden},'confirmada',this)">✅ Confirmar pago</button>`
+    }
+    if (tipo === 'Confirmadas') {
+      acciones += `<button class="btn-accion btn-entregar" onclick="cambiarEstado(${o.id_orden},'entregada',this)">📦 Marcar entregada</button>`
+    }
+    acciones += `<button class="btn-accion" style="background:#f1f5f9;color:#475569" onclick="imprimirOrden(${o.id_orden})">🖨️ Imprimir</button>`
+    return `
+    <div class="orden-card" id="oc-${o.id_orden}">
+      <div class="orden-card-top">
+        <div>
+          <div class="orden-num">Pedido #${o.id_orden} · ${fecha}</div>
+          <div class="orden-comprador">${o.nombre_comprador}</div>
+        </div>
+        <span class="orden-estado-badge ${claseEstado[o.estado] || ''}">${o.estado}</span>
+      </div>
+      <div class="orden-meta-row">
+        <span>${modalidad}</span>
+        <span>💳 ${o.metodo_pago || 'No registrado'}</span>
+      </div>
+      <div class="orden-monto">$${Number(o.total).toLocaleString('es-CO')}</div>
+      ${acciones ? `<div class="orden-acciones">${acciones}</div>` : ''}
+    </div>`
+  }
+
+  async function cambiarEstado(id, estado, btn) {
+    if (!confirm(`¿Confirmar cambio de estado del pedido #${id}?`)) return
+    if (btn) { btn.disabled = true; btn.textContent = 'Procesando...' }
+    try {
+      const res = await fetch('/vendedor/ordenes/estado', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_orden: id, nuevo_estado: estado })
+      })
+      const data = await res.json()
+      if (data.ok) {
+        const card = document.getElementById('oc-' + id)
+        if (card) { card.style.opacity = '0'; card.style.transition = 'opacity 0.3s'; }
+        setTimeout(() => cargarOrdenes(), 350)
+      } else {
+        alert('No se pudo actualizar la orden')
+        if (btn) btn.disabled = false
+      }
+    } catch(e) {
+      alert('Error de conexión')
+      if (btn) btn.disabled = false
+    }
+  }
+  async function imprimirOrden(id) {
+  const res = await fetch(`/vendedor/ordenes/${id}/detalle`)
+  const { orden, items } = await res.json()
+
+  const fecha = new Date(orden.fecha_orden).toLocaleDateString('es-CO',
+    { day: '2-digit', month: 'long', year: 'numeric' })
+  const entrega = orden.modalidad_entrega === 'recogida'
+    ? `📍 Recogida — ${orden.punto_nombre || ''}`
+    : `🏠 Domicilio — ${orden.direccion_envio || ''}`
+
+  const filas = items.map(i => `
+    <tr>
+      <td>${i.nombre_producto}</td>
+      <td style="text-align:center">${i.cantidad}</td>
+      <td style="text-align:right">$${Number(i.precio_unitario).toLocaleString('es-CO')}</td>
+      <td style="text-align:right">$${Number(i.subtotal).toLocaleString('es-CO')}</td>
+    </tr>`).join('')
+
+  const ventana = window.open('', '_blank', 'width=800,height=700')
+  ventana.document.write(`<!DOCTYPE html>
+  <html lang="es"><head>
+    <meta charset="UTF-8">
+    <title>Pedido #${orden.id_orden}</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; font-size: 13px; color: #1e293b; padding: 2rem; max-width: 720px; margin: 0 auto; }
+      .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 3px solid #4f46e5; }
+      .logo { font-size: 1.5rem; font-weight: 700; color: #4f46e5; }
+      .logo small { display: block; font-size: 0.75rem; font-weight: 400; color: #64748b; }
+      .orden-num { text-align: right; }
+      .orden-num strong { font-size: 1rem; color: #4f46e5; }
+      .orden-num small { display: block; color: #64748b; font-size: 0.75rem; }
+      .seccion { margin-bottom: 1.25rem; }
+      .seccion h4 { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 0.6rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3rem; }
+      .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+      .info-item { background: #f8fafc; border-radius: 0.4rem; padding: 0.5rem 0.75rem; }
+      .info-item .lbl { font-size: 0.65rem; color: #94a3b8; margin-bottom: 0.15rem; }
+      .info-item .val { font-size: 0.82rem; font-weight: 600; }
+      table { width: 100%; border-collapse: collapse; }
+      thead { background: #f1f5f9; }
+      th { padding: 0.5rem 0.75rem; text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
+      td { padding: 0.55rem 0.75rem; border-bottom: 1px solid #e2e8f0; }
+      .total-wrap { display: flex; justify-content: flex-end; margin-top: 0.75rem; }
+      .total-box { background: #4f46e5; color: white; border-radius: 0.5rem; padding: 0.6rem 1.5rem; font-weight: 700; font-size: 1rem; }
+      .badge { display: inline-block; padding: 0.2rem 0.75rem; border-radius: 2rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; background: #e0e7ff; color: #3730a3; }
+      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; text-align: center; font-size: 0.68rem; color: #94a3b8; }
+      .btn-print { display: block; margin: 1.5rem auto 0; background: #4f46e5; color: white; border: none; border-radius: 0.5rem; padding: 0.7rem 2rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; font-family: Arial, sans-serif; }
+      @media print { .btn-print { display: none; } body { padding: 0.5rem; } }
+    </style>
+  </head><body>
+
+    <div class="header">
+      <div class="logo">UniMarket <small>Tu mercado universitario</small></div>
+      <div class="orden-num">
+        <strong>Pedido #${orden.id_orden}</strong>
+        <small>${fecha}</small>
+      </div>
+    </div>
+
+    <div class="seccion">
+      <h4>Información del comprador</h4>
+      <div class="info-grid">
+        <div class="info-item"><div class="lbl">Nombre</div><div class="val">${orden.nombre_comprador}</div></div>
+        <div class="info-item"><div class="lbl">Teléfono</div><div class="val">${orden.telefono_comprador || '—'}</div></div>
+        <div class="info-item"><div class="lbl">Entrega</div><div class="val">${entrega}</div></div>
+        <div class="info-item"><div class="lbl">Estado</div><div class="val"><span class="badge">${orden.estado}</span></div></div>
+      </div>
+    </div>
+
+    <div class="seccion">
+      <h4>Pago</h4>
+      <div class="info-grid">
+        <div class="info-item"><div class="lbl">Método</div><div class="val">${orden.metodo_pago || '—'}</div></div>
+        <div class="info-item"><div class="lbl">Estado del pago</div><div class="val">${orden.estado_pago || '—'}</div></div>
+      </div>
+    </div>
+
+    <div class="seccion">
+      <h4>Productos</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th style="text-align:center">Cant.</th>
+            <th style="text-align:right">P. Unit.</th>
+            <th style="text-align:right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>
+      <div class="total-wrap">
+        <div class="total-box">Total: $${Number(orden.total).toLocaleString('es-CO')}</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Documento generado por UniMarket · ${new Date().toLocaleString('es-CO')}
+    </div>
+
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+
+  </body></html>`)
+  ventana.document.close()
+  }
+
+  document.addEventListener('DOMContentLoaded', cargarOrdenes)
+  /* DROPDOWN USUARIO */
+function toggleUserMenu() {
+  const d = document.getElementById('userDropdown')
+  d.style.display = d.style.display === 'none' ? 'block' : 'none'
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.user-menu')) {
+    const d = document.getElementById('userDropdown')
+    if (d) d.style.display = 'none'
+  }
+})
+</script>
+</body>
+</html>

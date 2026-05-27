@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniMarket — Pago</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--primary:#4f46e5;--primary-light:#e0e7ff;--bg:#f8fafc;--surface:#fff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--radius:1rem}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+    nav{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;padding:0 2rem;height:64px;display:flex;align-items:center;gap:1rem;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+    .nav-logo{display:flex;align-items:center;gap:.5rem;text-decoration:none}
+    .nav-logo span{font-size:1.15rem;font-weight:700;color:var(--primary)}
+    .nav-right{margin-left:auto}
+    .btn-back{background:none;border:1.5px solid var(--border);border-radius:2rem;padding:.4rem 1rem;font-size:.8rem;font-weight:500;color:var(--muted);text-decoration:none;transition:all .2s}
+    .btn-back:hover{border-color:var(--primary);color:var(--primary)}
+
+    .steps{display:flex;align-items:center;justify-content:center;gap:0;padding:1.5rem 2rem;max-width:600px;margin:0 auto}
+    .step{display:flex;flex-direction:column;align-items:center;gap:.35rem;flex:1}
+    .step-circle{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;border:2px solid var(--border);background:var(--surface);color:var(--muted)}
+    .step.active .step-circle{background:var(--primary);border-color:var(--primary);color:#fff}
+    .step.done .step-circle{background:#10b981;border-color:#10b981;color:#fff}
+    .step-label{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+    .step.active .step-label,.step.done .step-label{color:var(--primary)}
+    .step.done .step-label{color:#10b981}
+    .step-line{height:2px;flex:1;background:var(--border);margin-bottom:1.2rem}
+    .step-line.done{background:#10b981}
+
+    main{max-width:520px;margin:0 auto;padding:1.5rem}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;margin-bottom:1.25rem}
+    .card-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.25rem}
+
+    /* MÉTODOS DE PAGO */
+    .metodos{display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.5rem}
+    .metodo-option{border:2px solid var(--border);border-radius:.75rem;padding:1rem 1.25rem;cursor:pointer;display:flex;align-items:center;gap:.875rem;transition:all .2s}
+    .metodo-option:hover{border-color:var(--primary)}
+    .metodo-option.selected{border-color:var(--primary);background:var(--primary-light)}
+    .metodo-option input{display:none}
+    .metodo-icon{font-size:1.5rem;flex-shrink:0}
+    .metodo-info .metodo-nombre{font-size:.9rem;font-weight:600}
+    .metodo-info .metodo-desc{font-size:.75rem;color:var(--muted)}
+
+    /* TARJETA SIMULADA */
+    #seccionTarjeta{margin-top:1.25rem}
+    .card-visual{background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:1rem;padding:1.5rem;color:#fff;margin-bottom:1.25rem;position:relative;overflow:hidden}
+    .card-visual::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.08)}
+    .card-visual::after{content:'';position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06)}
+    .card-chip{width:36px;height:28px;background:linear-gradient(135deg,#f59e0b,#fbbf24);border-radius:5px;margin-bottom:1.5rem}
+    .card-number-display{font-size:1.1rem;letter-spacing:.2em;font-weight:500;margin-bottom:1.25rem;font-family:monospace}
+    .card-bottom{display:flex;justify-content:space-between;align-items:flex-end}
+    .card-bottom .label{font-size:.65rem;opacity:.7;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.2rem}
+    .card-bottom .value{font-size:.85rem;font-weight:600}
+
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .form-group{margin-bottom:.875rem}
+    .form-group label{display:block;font-size:.8rem;font-weight:600;margin-bottom:.4rem}
+    .form-group input{width:100%;padding:.65rem .875rem;border:1.5px solid var(--border);border-radius:.6rem;font-size:.875rem;font-family:'Inter',sans-serif;color:var(--text);background:var(--surface);outline:none;transition:border-color .2s,box-shadow .2s;letter-spacing:.05em}
+    .form-group input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+
+    .total-box{background:var(--bg);border-radius:.75rem;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+    .total-box span:first-child{font-size:.875rem;color:var(--muted);font-weight:500}
+    .total-box span:last-child{font-size:1.3rem;font-weight:700;color:var(--primary)}
+
+    .btn-pagar{width:100%;background:var(--primary);color:#fff;border:none;border-radius:.85rem;padding:1rem;font-size:1rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s;display:flex;align-items:center;justify-content:center;gap:.5rem}
+    .btn-pagar:hover{background:#4338ca}
+    .btn-pagar:disabled{opacity:.6;cursor:not-allowed}
+
+    .secure-note{text-align:center;font-size:.75rem;color:var(--muted);margin-top:.875rem;display:flex;align-items:center;justify-content:center;gap:.35rem}
+
+    /* OVERLAY PROCESANDO */
+    .processing-overlay{position:fixed;inset:0;background:rgba(255,255,255,.97);z-index:999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem}
+    .processing-overlay.show{display:flex}
+    .spinner{width:56px;height:56px;border:4px solid var(--primary-light);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .processing-title{font-size:1.3rem;font-weight:700}
+    .processing-sub{font-size:.875rem;color:var(--muted)}
+
+    .hidden{display:none}
+    @media(max-width:600px){nav{padding:0 1rem}main{padding:1rem}.form-row{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/comprador" class="nav-logo">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="9" fill="#4f46e5"/>
+      <path d="M9 12h14M9 16h14M9 20h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="24" cy="20" r="4" fill="#06b6d4" stroke="#fff" stroke-width="1.5"/>
+    </svg>
+    <span>UniMarket</span>
+  </a>
+  <div class="nav-right">
+    <a href="/checkout" class="btn-back">← Volver</a>
+  </div>
+</nav>
+
+<!-- PASOS -->
+<div class="steps">
+  <div class="step done">
+    <div class="step-circle">✓</div>
+    <div class="step-label">Entrega</div>
+  </div>
+  <div class="step-line done"></div>
+  <div class="step active">
+    <div class="step-circle">2</div>
+    <div class="step-label">Pago</div>
+  </div>
+  <div class="step-line"></div>
+  <div class="step">
+    <div class="step-circle">3</div>
+    <div class="step-label">Confirmación</div>
+  </div>
+</div>
+
+<main>
+  <form action="/pago/procesar" method="POST" id="pagoForm" onsubmit="return procesarPago(event)">
+
+    <div class="card">
+      <div class="card-title">Método de pago</div>
+
+      <div class="metodos">
+        <label class="metodo-option" onclick="seleccionarMetodo('tarjeta', this)">
+          <input type="radio" name="metodo_pago" value="tarjeta">
+          <span class="metodo-icon">💳</span>
+          <div class="metodo-info">
+            <div class="metodo-nombre">Tarjeta débito / crédito</div>
+            <div class="metodo-desc">Visa, Mastercard, American Express</div>
+          </div>
+        </label>
+
+        <label class="metodo-option" onclick="seleccionarMetodo('efectivo', this)">
+          <input type="radio" name="metodo_pago" value="efectivo">
+          <span class="metodo-icon">💵</span>
+          <div class="metodo-info">
+            <div class="metodo-nombre">Efectivo</div>
+            <div class="metodo-desc">Paga al recibir o en el punto de encuentro</div>
+          </div>
+        </label>
+
+        <label class="metodo-option" onclick="seleccionarMetodo('transferencia', this)">
+          <input type="radio" name="metodo_pago" value="transferencia">
+          <span class="metodo-icon">🏦</span>
+          <div class="metodo-info">
+            <div class="metodo-nombre">Transferencia bancaria</div>
+            <div class="metodo-desc">Nequi, Daviplata, PSE</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Formulario tarjeta simulado -->
+      <div id="seccionTarjeta" class="hidden">
+        <!-- Tarjeta visual -->
+        <div class="card-visual">
+          <div class="card-chip"></div>
+          <div class="card-number-display" id="cardNumberDisplay">•••• •••• •••• ••••</div>
+          <div class="card-bottom">
+            <div>
+              <div class="label">Titular</div>
+              <div class="value" id="cardNameDisplay">NOMBRE TITULAR</div>
+            </div>
+            <div>
+              <div class="label">Vence</div>
+              <div class="value" id="cardExpDisplay">MM/AA</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Número de tarjeta</label>
+          <input type="text" placeholder="1234 5678 9012 3456" maxlength="19"
+                 oninput="formatCardNumber(this)" id="inputCardNumber">
+        </div>
+        <div class="form-group">
+          <label>Nombre del titular</label>
+          <input type="text" placeholder="Como aparece en la tarjeta"
+                 oninput="document.getElementById('cardNameDisplay').textContent = this.value.toUpperCase() || 'NOMBRE TITULAR'">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vencimiento</label>
+            <input type="text" placeholder="MM/AA" maxlength="5"
+                   oninput="formatExpiry(this)" id="inputExpiry">
+          </div>
+          <div class="form-group">
+            <label>CVV</label>
+            <input type="text" placeholder="•••" maxlength="3">
+          </div>
+        </div>
+      </div>
+
+      <!-- Info efectivo/transferencia -->
+      <div id="seccionEfectivo" class="hidden" style="background:#f0fdf4;border-radius:.75rem;padding:1rem;border:1px solid #bbf7d0">
+        <p style="font-size:.875rem;color:#166534">💵 <strong>Pago en efectivo:</strong> Realiza el pago directamente al vendedor al momento de la entrega o en el punto de encuentro.</p>
+      </div>
+      <div id="seccionTransferencia" class="hidden" style="background:#eff6ff;border-radius:.75rem;padding:1rem;border:1px solid #bfdbfe">
+        <p style="font-size:.875rem;color:#1e40af">🏦 <strong>Transferencia:</strong> El vendedor te enviará los datos de pago por WhatsApp una vez confirmado el pedido.</p>
+      </div>
+    </div>
+
+    <div class="total-box">
+      <span>Total a pagar</span>
+      <span>$<%= Number(total).toLocaleString('es-CO') %></span>
+    </div>
+
+    <button type="submit" class="btn-pagar" id="btnPagar" disabled>
+      🔒 Confirmar pedido
+    </button>
+    <div class="secure-note">🔒 Pago seguro y encriptado</div>
+  </form>
+</main>
+
+<!-- OVERLAY PROCESANDO -->
+<div class="processing-overlay" id="processingOverlay">
+  <div class="spinner"></div>
+  <div class="processing-title">Procesando tu pedido...</div>
+  <div class="processing-sub">Por favor no cierres esta ventana</div>
+</div>
+
+<script>
+  let metodoSeleccionado = null
+
+  function seleccionarMetodo(metodo, el) {
+    document.querySelectorAll('.metodo-option').forEach(o => o.classList.remove('selected'))
+    el.classList.add('selected')
+    el.querySelector('input').checked = true
+    metodoSeleccionado = metodo
+
+    document.getElementById('seccionTarjeta').classList.add('hidden')
+    document.getElementById('seccionEfectivo').classList.add('hidden')
+    document.getElementById('seccionTransferencia').classList.add('hidden')
+
+    if (metodo === 'tarjeta')       document.getElementById('seccionTarjeta').classList.remove('hidden')
+    if (metodo === 'efectivo')      document.getElementById('seccionEfectivo').classList.remove('hidden')
+    if (metodo === 'transferencia') document.getElementById('seccionTransferencia').classList.remove('hidden')
+
+    document.getElementById('btnPagar').disabled = false
+  }
+
+  function formatCardNumber(input) {
+    let v = input.value.replace(/\D/g, '').substring(0, 16)
+    let formatted = v.match(/.{1,4}/g)?.join(' ') || v
+    input.value = formatted
+    document.getElementById('cardNumberDisplay').textContent =
+      (v + '................').substring(0, 16).match(/.{1,4}/g).join(' ').replace(/[^•\d ]/g, '•')
+    const display = formatted.padEnd(19, '•').replace(/\d(?=.{5})/g, '•')
+    document.getElementById('cardNumberDisplay').textContent = formatted || '•••• •••• •••• ••••'
+  }
+
+  function formatExpiry(input) {
+    let v = input.value.replace(/\D/g, '').substring(0, 4)
+    if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2)
+    input.value = v
+    document.getElementById('cardExpDisplay').textContent = v || 'MM/AA'
+  }
+
+  function procesarPago(e) {
+    if (!metodoSeleccionado) {
+      e.preventDefault()
+      return false
+    }
+
+    document.getElementById('processingOverlay').classList.add('show')
+    document.getElementById('btnPagar').disabled = true
+    return true
+  }
+</script>
+</body>
+</html>

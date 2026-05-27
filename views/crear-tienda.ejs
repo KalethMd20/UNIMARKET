@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniMarket — Crear tu tienda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #4f46e5; --primary-light: #e0e7ff;
+      --bg: #f8fafc; --surface: #ffffff;
+      --border: #e2e8f0; --text: #0f172a; --muted: #64748b;
+      --radius: 1rem; --error: #ef4444;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    nav {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 2rem; height: 64px; display: flex; align-items: center; gap: 1rem;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; }
+    .nav-logo span { font-size: 1.15rem; font-weight: 700; color: var(--primary); }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-user { display: flex; align-items: center; gap: 0.5rem; background: var(--primary-light); color: var(--primary); padding: 0.4rem 0.9rem 0.4rem 0.5rem; border-radius: 2rem; font-size: 0.8rem; font-weight: 600; }
+    .avatar { width: 28px; height: 28px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; }
+    .btn-logout { background: none; border: 1.5px solid var(--border); border-radius: 2rem; padding: 0.4rem 1rem; font-size: 0.8rem; font-weight: 500; color: var(--muted); cursor: pointer; text-decoration: none; transition: all 0.2s; }
+    .btn-logout:hover { border-color: #ef4444; color: #ef4444; }
+
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 1.5rem; padding: 2.5rem; width: 100%; max-width: 500px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    }
+    .card-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .card h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .card p { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6; }
+
+    .error-msg { background: #fee2e2; color: var(--error); border-radius: 0.6rem; padding: 0.75rem 1rem; font-size: 0.85rem; margin-bottom: 1.25rem; }
+
+    .field { margin-bottom: 1.25rem; }
+    .field label { display: block; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.4rem; }
+    .field input, .field textarea {
+      width: 100%; padding: 0.7rem 1rem; border: 1.5px solid var(--border);
+      border-radius: 0.6rem; font-size: 0.9rem; font-family: 'Inter', sans-serif;
+      color: var(--text); background: var(--bg); outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field input:focus, .field textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .field textarea { resize: vertical; min-height: 90px; }
+
+    .btn-submit {
+      width: 100%; background: var(--primary); color: white; border: none;
+      border-radius: 0.75rem; padding: 0.85rem; font-size: 1rem; font-weight: 600;
+      cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.2s; margin-top: 0.5rem;
+    }
+    .btn-submit:hover { background: #4338ca; }
+
+    .steps { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+    .step { flex: 1; height: 4px; border-radius: 2px; background: var(--border); }
+    .step.active { background: var(--primary); }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="9" fill="#4f46e5"/>
+      <path d="M9 12h14M9 16h14M9 20h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="24" cy="20" r="4" fill="#10b981" stroke="#fff" stroke-width="1.5"/>
+    </svg>
+    <span>UniMarket</span>
+  </a>
+  <div class="nav-right">
+    <div class="nav-user">
+      <div class="avatar"><%= user.nombre.charAt(0).toUpperCase() %></div>
+      <%= user.nombre.split(' ')[0] %>
+    </div>
+    <a href="/logout" class="btn-logout">Salir</a>
+  </div>
+</nav>
+
+<main>
+  <div class="card">
+    <div class="steps">
+      <div class="step active"></div>
+      <div class="step"></div>
+      <div class="step"></div>
+    </div>
+    <div class="card-icon">🏪</div>
+    <h1>Crea tu tienda</h1>
+    <p>Antes de publicar productos, necesitas configurar tu perfil de vendedor. Un administrador verificará tu información.</p>
+
+    <% if (error) { %>
+      <div class="error-msg">⚠️ <%= error %></div>
+    <% } %>
+
+    <form action="/vendedor/crear-tienda" method="POST">
+      <div class="field">
+        <label>Nombre de tu tienda</label>
+        <input type="text" name="nombre_tienda" placeholder="Ej: Librería Estudiantil" required maxlength="150">
+      </div>
+      <div class="field">
+        <label>Documento de identidad</label>
+        <input type="text" name="documento" placeholder="Número de cédula" required maxlength="50">
+      </div>
+      <div class="field">
+        <label>Descripción de tu tienda</label>
+        <textarea name="descripcion" placeholder="Cuéntales a los compradores qué vendes y cómo trabajas..." required></textarea>
+      </div>
+      <button type="submit" class="btn-submit">Enviar para verificación →</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

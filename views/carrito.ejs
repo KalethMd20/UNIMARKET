@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniMarket — Mi Carrito</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--primary:#4f46e5;--primary-light:#e0e7ff;--bg:#f8fafc;--surface:#fff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--danger:#ef4444;--radius:1rem}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+    /* NAV */
+    nav{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;padding:0 2rem;height:64px;display:flex;align-items:center;gap:1rem;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+    .nav-logo{display:flex;align-items:center;gap:.5rem;text-decoration:none}
+    .nav-logo span{font-size:1.15rem;font-weight:700;color:var(--primary)}
+    .nav-right{margin-left:auto;display:flex;align-items:center;gap:.75rem}
+    .nav-user{display:flex;align-items:center;gap:.5rem;background:var(--primary-light);color:var(--primary);padding:.4rem .9rem .4rem .5rem;border-radius:2rem;font-size:.8rem;font-weight:600}
+    .avatar{width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700}
+    .btn-back{background:none;border:1.5px solid var(--border);border-radius:2rem;padding:.4rem 1rem;font-size:.8rem;font-weight:500;color:var(--muted);text-decoration:none;transition:all .2s}
+    .btn-back:hover{border-color:var(--primary);color:var(--primary)}
+
+    /* LAYOUT */
+    main{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start}
+    .page-title{font-size:1.4rem;font-weight:700;margin-bottom:1.5rem}
+
+    /* ITEMS */
+    .cart-items{display:flex;flex-direction:column;gap:1rem}
+    .cart-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;display:flex;align-items:center;gap:1rem;transition:box-shadow .2s}
+    .cart-item:hover{box-shadow:0 4px 16px rgba(0,0,0,.07)}
+    .item-img{width:80px;height:80px;object-fit:cover;border-radius:.6rem;background:#f1f5f9;flex-shrink:0}
+    .item-info{flex:1;min-width:0}
+    .item-name{font-size:.95rem;font-weight:600;margin-bottom:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .item-price{font-size:.85rem;color:var(--muted)}
+    .item-subtotal{font-size:1rem;font-weight:700;color:var(--primary);white-space:nowrap}
+    .qty-control{display:flex;align-items:center;gap:.5rem;margin-top:.6rem}
+    .qty-btn{width:28px;height:28px;border:1.5px solid var(--border);border-radius:.4rem;background:var(--bg);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-weight:600}
+    .qty-btn:hover{border-color:var(--primary);color:var(--primary)}
+    .qty-num{font-size:.9rem;font-weight:600;min-width:24px;text-align:center}
+    .btn-remove{background:none;border:none;color:var(--muted);cursor:pointer;padding:.4rem;border-radius:.4rem;font-size:.9rem;transition:all .15s;flex-shrink:0}
+    .btn-remove:hover{background:#fee2e2;color:var(--danger)}
+
+    /* RESUMEN */
+    .resumen{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;position:sticky;top:80px}
+    .resumen h2{font-size:1.1rem;font-weight:700;margin-bottom:1.25rem}
+    .resumen-row{display:flex;justify-content:space-between;font-size:.875rem;margin-bottom:.75rem;color:var(--muted)}
+    .resumen-row.total{font-size:1.1rem;font-weight:700;color:var(--text);border-top:1px solid var(--border);padding-top:.75rem;margin-top:.25rem}
+    .btn-checkout{width:100%;background:var(--primary);color:#fff;border:none;border-radius:.75rem;padding:.9rem;font-size:1rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s;margin-top:1rem}
+    .btn-checkout:hover{background:#4338ca}
+    .btn-seguir{display:block;text-align:center;margin-top:.75rem;font-size:.85rem;color:var(--muted);text-decoration:none;transition:color .2s}
+    .btn-seguir:hover{color:var(--primary)}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:4rem 2rem;grid-column:1/-1}
+    .empty-icon{font-size:4rem;margin-bottom:1rem}
+    .empty p{color:var(--muted);margin-bottom:1.5rem}
+    .btn-ir{display:inline-block;background:var(--primary);color:#fff;padding:.75rem 2rem;border-radius:.75rem;text-decoration:none;font-weight:600;transition:background .2s}
+    .btn-ir:hover{background:#4338ca}
+
+    @media(max-width:700px){
+      main{grid-template-columns:1fr}
+      .resumen{position:static}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/comprador" class="nav-logo">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="9" fill="#4f46e5"/>
+      <path d="M9 12h14M9 16h14M9 20h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      ircle cx="24" cy="20" r="4" fill="#06b6d4" stroke="#fff" stroke-width="1.5"/>
+    </svg>
+    <span>UniMarket</span>
+  </a>
+  <div class="nav-right">
+    <div class="nav-user">
+      <div class="avatar"><%= user.nombre.charAt(0).toUpperCase() %></div>
+      <%= user.nombre.split(' ')[0] %>
+    </div>
+    <a href="/comprador" class="btn-back">← Seguir comprando</a>
+  </div>
+</nav>
+
+<main>
+  <% if (carrito.length === 0) { %>
+    <div class="empty">
+      <div class="empty-icon">🛒</div>
+      <p>Tu carrito está vacío</p>
+      <a href="/comprador" class="btn-ir">Ver productos</a>
+    </div>
+  <% } else { %>
+
+  <!-- LISTA DE ITEMS -->
+  <div>
+    <div class="page-title">Mi Carrito (<%= carrito.length %> <%= carrito.length === 1 ? 'producto' : 'productos' %>)</div>
+    <div class="cart-items" id="cartItems">
+      <% carrito.forEach(item => { %>
+      <div class="cart-item" id="item-<%= item.id_producto %>">
+        <img class="item-img"
+          src="/uploads/productos/<%= item.imagen %>"
+          alt="<%= item.nombre %>"
+          onerror="this.src='https://placehold.co/80x80/e0e7ff/4f46e5?text=📦'">
+        <div class="item-info">
+          <div class="item-name"><%= item.nombre %></div>
+          <div class="item-price">$<%= Number(item.precio).toLocaleString('es-CO') %> c/u</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="cambiarCantidad(<%= item.id_producto %>, -1)">−</button>
+            <span class="qty-num" id="qty-<%= item.id_producto %>"><%= item.cantidad %></span>
+            <button class="qty-btn" onclick="cambiarCantidad(<%= item.id_producto %>, 1)">+</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.5rem">
+          <span class="item-subtotal" id="sub-<%= item.id_producto %>">
+            $<%= Number(item.precio * item.cantidad).toLocaleString('es-CO') %>
+          </span>
+          <form method="POST" action="/carrito/eliminar">
+            <input type="hidden" name="id_producto" value="<%= item.id_producto %>">
+            <button type="submit" class="btn-remove" title="Eliminar">🗑️</button>
+          </form>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="resumen">
+    <h2>Resumen del pedido</h2>
+    <div class="resumen-row">
+      <span>Subtotal</span>
+      <span id="resumenSubtotal">$<%= Number(total).toLocaleString('es-CO') %></span>
+    </div>
+    <div class="resumen-row">
+      <span>Envío</span>
+      <span style="color:#10b981;font-weight:600">A calcular</span>
+    </div>
+    <div class="resumen-row total">
+      <span>Total</span>
+      <span id="resumenTotal">$<%= Number(total).toLocaleString('es-CO') %></span>
+    </div>
+    <button class="btn-checkout" onclick="location.href='/checkout'">
+      Proceder al pago →
+    </button>
+    <a href="/comprador" class="btn-seguir">← Seguir comprando</a>
+  </div>
+
+  <% } %>
+</main>
+
+<script>
+  const precios = {
+    <% carrito.forEach(item => { %>
+      '<%= item.id_producto %>': <%= item.precio %>,
+    <% }) %>
+  }
+
+  async function cambiarCantidad(id, delta) {
+    const qtyEl = document.getElementById('qty-' + id)
+    const nuevaCantidad = Math.max(0, parseInt(qtyEl.textContent) + delta)
+
+    if (nuevaCantidad === 0) {
+      if (!confirm('¿Eliminar este producto del carrito?')) return
+    }
+
+    const res = await fetch('/carrito/actualizar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id_producto: id, cantidad: nuevaCantidad })
+    })
+    const data = await res.json()
+
+    if (nuevaCantidad === 0) {
+      document.getElementById('item-' + id).remove()
+    } else {
+      qtyEl.textContent = nuevaCantidad
+      const subtotal = precios[id] * nuevaCantidad
+      document.getElementById('sub-' + id).textContent = '$' + subtotal.toLocaleString('es-CO')
+    }
+
+    const fmt = '$' + Math.round(data.total).toLocaleString('es-CO')
+    document.getElementById('resumenSubtotal').textContent = fmt
+    document.getElementById('resumenTotal').textContent = fmt
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniMarket — Pedido Confirmado</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--primary:#4f46e5;--primary-light:#e0e7ff;--bg:#f8fafc;--surface:#fff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--radius:1rem}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
+
+    .confetti-container{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+    .confetti{position:absolute;width:10px;height:10px;border-radius:2px;animation:fall linear forwards}
+    @keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:1.5rem;padding:3rem 2.5rem;text-align:center;max-width:480px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.08);position:relative;z-index:1}
+
+    .success-icon{width:80px;height:80px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2.5rem;animation:popIn .5s cubic-bezier(0.175,0.885,0.32,1.275)}
+    @keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
+
+    h1{font-size:1.5rem;font-weight:700;margin-bottom:.5rem}
+    .subtitle{color:var(--muted);font-size:.9rem;margin-bottom:2rem}
+
+    .orden-badge{background:var(--primary-light);color:var(--primary);border-radius:.75rem;padding:.75rem 1.25rem;display:inline-block;font-weight:700;font-size:1rem;margin-bottom:2rem}
+    .orden-badge span{font-size:.75rem;font-weight:500;display:block;color:var(--muted);margin-bottom:.2rem}
+
+    .pasos{text-align:left;margin-bottom:2rem}
+    .paso{display:flex;align-items:flex-start;gap:.875rem;padding:.75rem 0;border-bottom:1px solid var(--border)}
+    .paso:last-child{border-bottom:none}
+    .paso-num{width:28px;height:28px;background:var(--primary-light);color:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;margin-top:.1rem}
+    .paso-text .title{font-size:.875rem;font-weight:600;margin-bottom:.2rem}
+    .paso-text .desc{font-size:.78rem;color:var(--muted)}
+
+    .btns{display:flex;flex-direction:column;gap:.75rem}
+    .btn-primary{background:var(--primary);color:#fff;border:none;border-radius:.85rem;padding:.875rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:none;display:block;transition:background .2s}
+    .btn-primary:hover{background:#4338ca}
+    .btn-secondary{background:none;border:1.5px solid var(--border);border-radius:.85rem;padding:.875rem;font-size:.9rem;font-weight:500;color:var(--muted);text-decoration:none;display:block;transition:all .2s}
+    .btn-secondary:hover{border-color:var(--primary);color:var(--primary)}
+
+    .steps{display:flex;align-items:center;justify-content:center;gap:0;padding:0 0 2rem;max-width:400px;margin:0 auto;width:100%}
+    .step{display:flex;flex-direction:column;align-items:center;gap:.35rem;flex:1}
+    .step-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;background:#10b981;border:2px solid #10b981;color:#fff}
+    .step-label{font-size:.68rem;font-weight:600;color:#10b981;text-transform:uppercase;letter-spacing:.04em}
+    .step-line{height:2px;flex:1;background:#10b981;margin-bottom:1.2rem}
+  </style>
+</head>
+<body>
+
+<!-- Confetti -->
+<div class="confetti-container" id="confetti"></div>
+
+<!-- Pasos -->
+<div class="steps">
+  <div class="step"><div class="step-circle">✓</div><div class="step-label">Entrega</div></div>
+  <div class="step-line"></div>
+  <div class="step"><div class="step-circle">✓</div><div class="step-label">Pago</div></div>
+  <div class="step-line"></div>
+  <div class="step"><div class="step-circle">✓</div><div class="step-label">Listo</div></div>
+</div>
+
+<div class="card">
+  <div class="success-icon">🎉</div>
+  <h1>¡Pedido confirmado!</h1>
+  <p class="subtitle">Tu pedido fue recibido y está siendo procesado</p>
+
+  <div class="orden-badge">
+    <span>Número de pedido</span>
+    #<%= id_orden %>
+  </div>
+
+  <div class="pasos">
+    <div class="paso">
+      <div class="paso-num">1</div>
+      <div class="paso-text">
+        <div class="title">Pedido recibido ✅</div>
+        <div class="desc">El vendedor ha sido notificado de tu compra</div>
+      </div>
+    </div>
+    <div class="paso">
+      <div class="paso-num">2</div>
+      <div class="paso-text">
+        <div class="title">Preparación</div>
+        <div class="desc">El vendedor preparará tu pedido pronto</div>
+      </div>
+    </div>
+    <div class="paso">
+      <div class="paso-num">3</div>
+      <div class="paso-text">
+        <div class="title">Entrega</div>
+        <div class="desc">Recibirás tu pedido en el punto o domicilio elegido</div>
+      </div>
+    </div>
+  </div>
+
+  <% if (orden && items && items.length) { %>
+    <div class="pasos" style="margin-top:.5rem">
+      <div class="paso">
+        <div class="paso-num">$</div>
+        <div class="paso-text">
+          <div class="title">Total de la compra</div>
+          <div class="desc">$<%= Number(orden.total).toLocaleString('es-CO') %></div>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num"><%= items.length %></div>
+        <div class="paso-text">
+          <div class="title">Productos</div>
+          <div class="desc">
+            <%= items.map(i => `${i.nombre_producto} x${i.cantidad}`).join(' · ') %>
+          </div>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">📦</div>
+        <div class="paso-text">
+          <div class="title">Entrega</div>
+          <div class="desc">
+            <%= orden.modalidad_entrega === 'recogida'
+              ? `Recogida en campus${orden.punto_nombre ? ` - ${orden.punto_nombre}` : ''}`
+              : `Envio a: ${orden.direccion_envio || 'Direccion registrada'}` %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <div class="btns">
+    <a href="/mis-pedidos/<%= id_orden %>" class="btn-primary">Ver detalle del pedido</a>
+    <a href="#" class="btn-secondary" onclick="abrirVistaPreviaPDF('<%= id_orden %>'); return false;">👁️ Vista previa de factura</a>
+    <a href="/mis-pedidos/<%= id_orden %>/pdf" class="btn-secondary">📄 Descargar comprobante PDF</a>
+    <a href="/comprador" class="btn-secondary">🏪 Seguir comprando</a>
+  </div>
+</div>
+
+<script>
+  // Confetti animado
+  const colors = ['#4f46e5','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6']
+  const container = document.getElementById('confetti')
+  for (let i = 0; i < 80; i++) {
+    const el = document.createElement('div')
+    el.className = 'confetti'
+    el.style.cssText = `
+      left:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      width:${6+Math.random()*8}px;
+      height:${6+Math.random()*8}px;
+      border-radius:${Math.random()>.5?'50%':'2px'};
+      animation-duration:${2+Math.random()*3}s;
+      animation-delay:${Math.random()*1.5}s;
+    `
+    container.appendChild(el)
+  }
+
+  // Abre una ventana con el PDF en modo inline (previsualizacion).
+  function abrirVistaPreviaPDF(idOrden) {
+    window.open(`/mis-pedidos/${idOrden}/pdf/preview`, '_blank', 'width=900,height=700')
+  }
+</script>
+</body>
+</html>

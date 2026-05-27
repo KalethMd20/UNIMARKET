@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniMarket — Iniciar sesión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--primary:#6366f1;--primary-hover:#4f46e5;--bg:#0f1117;--surface:#1a1d27;--surface-2:#22263a;--border:#2e3248;--text:#f1f5f9;--muted:#8b95b0;--error:#f87171;--radius:1rem}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;background-image:radial-gradient(ellipse at 20% 50%,rgba(99,102,241,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(16,185,129,.06) 0%,transparent 50%)}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:1.5rem;padding:2.5rem 2rem;width:100%;max-width:460px;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+    .logo{display:flex;flex-direction:column;align-items:center;gap:.75rem;margin-bottom:2rem}
+    .logo-icon{width:56px;height:56px;background:var(--primary);border-radius:1rem;display:flex;align-items:center;justify-content:center}
+    .logo-title{font-size:1.4rem;font-weight:700;letter-spacing:-.02em}
+    .logo-sub{font-size:.875rem;color:var(--muted)}
+    .field{margin-bottom:1.1rem}
+    .field label{display:block;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.4rem}
+    .field input{width:100%;padding:.72rem 1rem;background:var(--surface-2);border:1.5px solid var(--border);border-radius:.6rem;font-size:.9rem;font-family:'Inter',sans-serif;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s}
+    .field input::placeholder{color:#4a5068}
+    .field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+    .btn-submit{width:100%;background:var(--primary);color:#fff;border:none;border-radius:.75rem;padding:.875rem;font-size:1rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s,transform .1s;margin-top:.5rem}
+    .btn-submit:hover{background:var(--primary-hover)}
+    .btn-submit:active{transform:scale(.98)}
+    .card-footer{text-align:center;margin-top:1.5rem;font-size:.85rem;color:var(--muted)}
+    .card-footer a{color:var(--primary);text-decoration:none;font-weight:600}
+    .card-footer a:hover{text-decoration:underline}
+    .divider{display:flex;align-items:center;gap:.75rem;margin:1.5rem 0;color:var(--muted);font-size:.8rem}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        <path d="M9 12h14M9 16h14M9 20h8" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="24" cy="20" r="4" fill="#10b981" stroke="#fff" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div class="logo-title">UniMarket</div>
+    <div class="logo-sub">Bienvenido de vuelta 👋</div>
+  </div>
+
+  <form action="/login" method="POST">
+    <div class="field">
+      <label>Correo electrónico</label>
+      <input type="email" name="correo" placeholder="tu@unimarket.edu" required autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" name="contrasena" placeholder="Tu contraseña" required autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn-submit">Iniciar sesión →</button>
+  </form>
+
+  <div class="divider">o</div>
+
+  <div class="card-footer">
+    ¿No tienes cuenta? <a href="/register">Regístrate gratis</a>
+  </div>
+</div>
+
+<!-- ✅ ESTE SCRIPT ES EL QUE FALTABA — lee las variables del servidor y redirige -->
+<% if (alert) { %>
+<script>
+  Swal.fire({
+    title: '<%- alertTitle %>',
+    text: '<%- alertMessage %>',
+    icon: '<%- alertIcon %>',
+    showConfirmButton: <%= showConfirmButton %>,
+    <% if (timer) { %>timer: <%= timer %>,<% } %>
+    background: '#1a1d27',
+    color: '#f1f5f9',
+    confirmButtonColor: '#6366f1'
+  }).then(() => {
+    window.location.href = '/<%= ruta %>'
+  })
+</script>
+<% } %>
+
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniMarket — Panel Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --primary:#4f46e5;
+      --primary-light:#e0e7ff;
+      --bg:#f8fafc;
+      --surface:#fff;
+      --border:#e2e8f0;
+      --text:#0f172a;
+      --muted:#64748b;
+      --success:#10b981;
+      --warning:#f59e0b;
+      --danger:#ef4444;
+      --radius:.75rem
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+
+    .sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+    .sidebar-logo{padding:1.5rem;display:flex;align-items:center;gap:.75rem;border-bottom:1px solid var(--border)}
+    .sidebar-logo svg rect{fill:var(--primary)}
+    .sidebar-logo span{font-weight:700;font-size:1.1rem;color:var(--primary)}
+    .sidebar-nav{flex:1;padding:1rem 0;overflow-y:auto}
+    .nav-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 1.25rem;color:var(--muted);text-decoration:none;font-size:.875rem;font-weight:500;cursor:pointer;border:none;background:none;width:100%;transition:all .15s}
+    .nav-item:hover,.nav-item.active{background:var(--primary-light);color:var(--primary);border-radius:0 var(--radius) var(--radius) 0}
+    .sidebar-footer{padding:1rem 1.25rem;border-top:1px solid var(--border)}
+    .user-chip{display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem}
+    .avatar{width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem}
+    .user-info{font-size:.8rem}
+    .user-info strong{display:block;font-weight:600}
+    .btn-logout{display:block;text-align:center;background:none;border:1.5px solid var(--border);border-radius:var(--radius);padding:.4rem;font-size:.8rem;color:var(--muted);text-decoration:none;transition:all .2s}
+    .btn-logout:hover{border-color:var(--danger);color:var(--danger)}
+
+    .main{margin-left:240px;flex:1;padding:2rem;min-height:100vh}
+    .page-header{margin-bottom:2rem}
+    .page-header h1{font-size:1.5rem;font-weight:700}
+    .page-header p{color:var(--muted);font-size:.9rem;margin-top:.25rem}
+
+    .section{display:none}
+    .section.active{display:block}
+
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:2rem}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-align:center}
+    .stat-num{font-size:2rem;font-weight:700;color:var(--primary)}
+    .stat-label{font-size:.8rem;color:var(--muted);margin-top:.25rem}
+    .stat-card.warn .stat-num{color:var(--warning)}
+    .stat-card.danger .stat-num{color:var(--danger)}
+
+    .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:2rem}
+    .table-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .table-header h2{font-size:1rem;font-weight:600}
+    table{width:100%;border-collapse:collapse}
+    th{background:#f8fafc;padding:.75rem 1rem;text-align:left;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--border)}
+    td{padding:.75rem 1rem;font-size:.85rem;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+
+    .badge{display:inline-block;padding:.2rem .6rem;border-radius:9999px;font-size:.7rem;font-weight:600}
+    .badge-green{background:#d1fae5;color:#065f46}
+    .badge-yellow{background:#fef3c7;color:#92400e}
+    .badge-red{background:#fee2e2;color:#991b1b}
+    .badge-blue{background:#dbeafe;color:#1e40af}
+    .badge-gray{background:#f1f5f9;color:#475569}
+
+    .btn{padding:.35rem .8rem;border-radius:.5rem;border:none;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+    .btn-approve{background:#d1fae5;color:#065f46}
+    .btn-approve:hover{background:#a7f3d0}
+    .btn-reject{background:#fee2e2;color:#991b1b}
+    .btn-reject:hover{background:#fecaca}
+    .btn-activate{background:#d1fae5;color:#065f46}
+    .btn-activate:hover{background:#a7f3d0}
+    .btn-deactivate{background:#fef3c7;color:#92400e}
+    .btn-deactivate:hover{background:#fde68a}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:#4338ca}
+    .btn-logout-danger:hover { border-color: var(--danger) !important; color: var(--danger) !important; }
+
+    .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;max-width:500px}
+    .form-card h3{font-size:1rem;font-weight:600;margin-bottom:1rem}
+    .field{margin-bottom:1rem}
+    .field label{display:block;font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.3rem}
+    .field input,.field textarea{width:100%;padding:.6rem .9rem;border:1.5px solid var(--border);border-radius:.5rem;font-size:.875rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s}
+    .field input:focus,.field textarea:focus{border-color:var(--primary)}
+    .field textarea{resize:vertical;min-height:70px}
+
+    .map-box{
+      height: 320px;
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: .75rem;
+      overflow: hidden;
+      margin-top: .5rem;
+    }
+    .coords-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:.75rem;
+    }
+    .hint{
+      font-size:.8rem;
+      color:var(--muted);
+      margin-top:.35rem;
+    }
+
+    @media (max-width: 640px){
+      .coords-grid{grid-template-columns:1fr}
+      .sidebar{position:static;width:100%;height:auto}
+      .main{margin-left:0}
+      body{flex-direction:column}
+    }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="9"/>
+      <path d="M9 12h14M9 16h14M9 20h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="24" cy="20" r="4" fill="#10b981" stroke="#fff" stroke-width="1.5"/>
+    </svg>
+    <span>UniMarket</span>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" onclick="showSection('dashboard', this)">📊 Dashboard</button>
+    <button class="nav-item" onclick="showSection('usuarios', this)">👥 Usuarios</button>
+    <button class="nav-item" onclick="showSection('productos', this)">📦 Productos</button>
+    <button class="nav-item" onclick="showSection('vendedores', this)">🏪 Vendedores</button>
+    <button class="nav-item" onclick="showSection('ordenes', this)">🛒 Órdenes</button>
+    <button class="nav-item" onclick="showSection('puntos', this)">📍 Puntos de encuentro</button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="avatar"><%= user.nombre.charAt(0).toUpperCase() %></div>
+      <div class="user-info">
+        <strong><%= user.nombre.split(' ')[0] %></strong>
+        <span style="color:var(--muted)">Administrador</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.5rem">
+      <a href="/perfil" class="btn-logout" style="display:flex;align-items:center;justify-content:center;gap:.4rem">👤 Mi perfil</a>
+      <a href="/logout" class="btn-logout" style="display:flex;align-items:center;justify-content:center;gap:.4rem;border-color:#fecaca;color:var(--danger)">🚪 Cerrar sesión</a>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div id="dashboard" class="section active">
+    <div class="page-header">
+      <h1>Bienvenido, <%= user.nombre.split(' ')[0] %> 👋</h1>
+      <p>Resumen general de UniMarket</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num"><%= stats.total_usuarios || 0 %></div><div class="stat-label">Usuarios</div></div>
+      <div class="stat-card"><div class="stat-num"><%= stats.total_productos || 0 %></div><div class="stat-label">Productos</div></div>
+      <div class="stat-card warn"><div class="stat-num"><%= stats.productos_pendientes || 0 %></div><div class="stat-label">Prod. pendientes</div></div>
+      <div class="stat-card warn"><div class="stat-num"><%= stats.vendedores_pendientes || 0 %></div><div class="stat-label">Vendedores pendientes</div></div>
+      <div class="stat-card"><div class="stat-num"><%= stats.total_ordenes || 0 %></div><div class="stat-label">Órdenes</div></div>
+      <div class="stat-card"><div class="stat-num"><%= stats.total_puntos || 0 %></div><div class="stat-label">Puntos de encuentro</div></div>
+    </div>
+  </div>
+
+  <div id="usuarios" class="section">
+    <div class="page-header"><h1>👥 Gestión de usuarios</h1><p>Activa o desactiva cuentas del sistema</p></div>
+    <div class="table-wrap">
+      <div class="table-header"><h2>Todos los usuarios (<%= usuarios.length %>)</h2></div>
+      <table>
+        <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Facultad</th><th>Estado</th><th>Acción</th></tr></thead>
+        <tbody>
+          <% usuarios.forEach(u => { %>
+          <tr>
+            <td><strong><%= u.nombre %></strong></td>
+            <td><%= u.correo %></td>
+            <td><span class="badge <%= u.nombre_rol==='admin'?'badge-blue':u.nombre_rol==='vendedor'?'badge-yellow':'badge-green' %>"><%= u.nombre_rol %></span></td>
+            <td><%= u.facultad || '—' %></td>
+            <td><span class="badge <%= u.estado==='activo'?'badge-green':'badge-red' %>"><%= u.estado %></span></td>
+            <td>
+              <% if (u.id_usuario !== user.id_usuario) { %>
+              <form method="POST" action="/admin/usuario/estado" style="display:inline">
+                <input type="hidden" name="id" value="<%= u.id_usuario %>">
+                <% if (u.estado === 'activo') { %>
+                  <input type="hidden" name="estado" value="inactivo">
+                  <button class="btn btn-deactivate">Desactivar</button>
+                <% } else { %>
+                  <input type="hidden" name="estado" value="activo">
+                  <button class="btn btn-activate">Activar</button>
+                <% } %>
+              </form>
+              <% } else { %><span style="color:var(--muted);font-size:.8rem">Tú</span><% } %>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="productos" class="section">
+    <div class="page-header"><h1>📦 Aprobar productos</h1><p>Revisa y aprueba o rechaza los productos de los vendedores</p></div>
+    <div class="table-wrap">
+      <div class="table-header"><h2>Todos los productos (<%= productos.length %>)</h2></div>
+      <table>
+        <thead><tr><th>Producto</th><th>Tienda</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Acción</th></tr></thead>
+        <tbody>
+          <% productos.forEach(p => { %>
+          <tr>
+            <td><strong><%= p.nombre_producto %></strong></td>
+            <td><%= p.nombre_tienda %></td>
+            <td><%= p.nombre_categoria %></td>
+            <td>$<%= Number(p.precio).toLocaleString('es-CO') %></td>
+            <td><%= p.stock %></td>
+            <td><span class="badge <%= p.estado==='activo'?'badge-green':p.estado==='pendiente'?'badge-yellow':'badge-red' %>"><%= p.estado %></span></td>
+            <td style="display:flex;gap:.4rem;flex-wrap:wrap">
+              <% if (p.estado !== 'activo') { %>
+              <form method="POST" action="/admin/producto/estado" style="display:inline">
+                <input type="hidden" name="id" value="<%= p.id_producto %>">
+                <input type="hidden" name="estado" value="activo">
+                <button class="btn btn-approve">Aprobar</button>
+              </form>
+              <% } %>
+              <% if (p.estado !== 'rechazado') { %>
+              <form method="POST" action="/admin/producto/estado" style="display:inline">
+                <input type="hidden" name="id" value="<%= p.id_producto %>">
+                <input type="hidden" name="estado" value="rechazado">
+                <button class="btn btn-reject">Rechazar</button>
+              </form>
+              <% } %>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="vendedores" class="section">
+    <div class="page-header"><h1>🏪 Verificar vendedores</h1><p>Aprueba o rechaza perfiles de tienda</p></div>
+    <div class="table-wrap">
+      <div class="table-header"><h2>Perfiles de vendedor (<%= vendedores.length %>)</h2></div>
+      <table>
+        <thead><tr><th>Vendedor</th><th>Tienda</th><th>Documento</th><th>Facultad</th><th>Estado</th><th>Acción</th></tr></thead>
+        <tbody>
+          <% vendedores.forEach(v => { %>
+          <tr>
+            <td><strong><%= v.nombre %></strong><br><small style="color:var(--muted)"><%= v.correo %></small></td>
+            <td><%= v.nombre_tienda %></td>
+            <td><%= v.documento %></td>
+            <td><%= v.facultad || '—' %></td>
+            <td><span class="badge <%= v.estado_verif==='verificado'?'badge-green':v.estado_verif==='pendiente'?'badge-yellow':'badge-red' %>"><%= v.estado_verif %></span></td>
+            <td style="display:flex;gap:.4rem;flex-wrap:wrap">
+              <% if (v.estado_verif !== 'verificado') { %>
+              <form method="POST" action="/admin/vendedor/estado" style="display:inline">
+                <input type="hidden" name="id" value="<%= v.id_vendedor %>">
+                <input type="hidden" name="estado" value="verificado">
+                <button class="btn btn-approve">Verificar</button>
+              </form>
+              <% } %>
+              <% if (v.estado_verif !== 'rechazado') { %>
+              <form method="POST" action="/admin/vendedor/estado" style="display:inline">
+                <input type="hidden" name="id" value="<%= v.id_vendedor %>">
+                <input type="hidden" name="estado" value="rechazado">
+                <button class="btn btn-reject">Rechazar</button>
+              </form>
+              <% } %>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="ordenes" class="section">
+    <div class="page-header"><h1>🛒 Todas las órdenes</h1><p>Supervisa el estado de las compras</p></div>
+    <div class="table-wrap">
+      <div class="table-header"><h2>Órdenes (<%= ordenes.length %>)</h2></div>
+      <table>
+        <thead><tr><th>#</th><th>Comprador</th><th>Modalidad</th><th>Destino</th><th>Total</th><th>Estado</th></tr></thead>
+        <tbody>
+          <% ordenes.forEach(o => { %>
+          <tr>
+            <td>#<%= o.id_orden %></td>
+            <td><strong><%= o.comprador %></strong></td>
+            <td><span class="badge badge-blue"><%= o.modalidad_entrega %></span></td>
+            <td><%= o.destino || '—' %></td>
+            <td>$<%= Number(o.total).toLocaleString('es-CO') %></td>
+            <td><span class="badge <%= o.estado==='entregada'?'badge-green':o.estado==='cancelada'?'badge-red':o.estado==='pendiente'?'badge-yellow':'badge-blue' %>"><%= o.estado %></span></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="puntos" class="section">
+    <div class="page-header"><h1>📍 Puntos de encuentro</h1><p>Gestiona los puntos físicos del campus</p></div>
+
+    <div class="form-card">
+      <h3>➕ Nuevo punto</h3>
+      <form method="POST" action="/admin/punto/crear">
+        <div class="field">
+          <label>Nombre</label>
+          <input type="text" name="nombre" required placeholder="Ej: Bloque B — Entrada">
+        </div>
+
+        <div class="field">
+          <label>Descripción</label>
+          <textarea name="descripcion" placeholder="Ubicación exacta..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>Selecciona la ubicación en el mapa</label>
+          <div id="mapaPunto" class="map-box"></div>
+          <div class="hint">Haz clic en el mapa para fijar el punto exacto.</div>
+        </div>
+
+        <div class="coords-grid">
+          <div class="field">
+            <label>Latitud</label>
+            <input type="text" id="latitud" name="latitud" readonly required placeholder="Se llena al hacer clic en el mapa">
+          </div>
+
+          <div class="field">
+            <label>Longitud</label>
+            <input type="text" id="longitud" name="longitud" readonly required placeholder="Se llena al hacer clic en el mapa">
+          </div>
+        </div>
+
+        <button class="btn btn-primary">Crear punto</button>
+      </form>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header"><h2>Puntos registrados (<%= puntos.length %>)</h2></div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% puntos.forEach(p => { %>
+          <tr>
+            <td><%= p.id_punto %></td>
+            <td><strong><%= p.nombre %></strong></td>
+            <td><%= p.descripcion || '—' %></td>
+            <td>
+              <span class="badge <%= p.activo ? 'badge-green' : 'badge-red' %>">
+                <%= p.activo ? 'Activo' : 'Inactivo' %>
+              </span>
+            </td>
+            <td>
+              <form method="POST" action="/admin/punto/toggle" style="display:inline">
+                <input type="hidden" name="id" value="<%= p.id_punto %>">
+                <input type="hidden" name="activo" value="<%= p.activo ? 0 : 1 %>">
+                <button class="btn <%= p.activo ? 'btn-deactivate' : 'btn-activate' %>">
+                  <%= p.activo ? 'Desactivar' : 'Activar' %>
+                </button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function showSection(id, el) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'))
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
+    document.getElementById(id).classList.add('active')
+    if (el) el.classList.add('active')
+    if (id === 'puntos' && window.mapaPunto) {
+        setTimeout(() => mapaPunto.invalidateSize(), 150)
+    }
+}
+
+const hash = window.location.hash.replace('#','')
+if (hash) {
+    const btn = [...document.querySelectorAll('.nav-item')].find(b => b.getAttribute('onclick')?.includes(hash))
+    if (btn) btn.click()
+}
+
+let mapaPunto
+let marcadorPunto
+
+document.addEventListener('DOMContentLoaded', () => {
+    const mapaDiv = document.getElementById('mapaPunto')
+    if (!mapaDiv) return
+
+    mapaPunto = L.map('mapaPunto').setView([11.2408, -74.1990], 15)
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mapaPunto)
+
+    mapaPunto.on('click', function(e) {
+        const { lat, lng } = e.latlng
+
+        if (marcadorPunto) {
+            mapaPunto.removeLayer(marcadorPunto)
+        }
+
+        marcadorPunto = L.marker([lat, lng]).addTo(mapaPunto)
+
+        document.getElementById('latitud').value = lat.toFixed(8)
+        document.getElementById('longitud').value = lng.toFixed(8)
+    })
+})
+</script>
+</body>
+</html>

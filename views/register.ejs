@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro — UniMarket</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f2027 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 1.5rem;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 560px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+    .logo svg { display: inline-block; }
+    .logo h1 {
+      color: #f8fafc;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+    .logo p {
+      color: #94a3b8;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+
+    /* ROL CARDS */
+    .rol-label {
+      color: #cbd5e1;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.75rem;
+    }
+
+    .rol-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .rol-card {
+      cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.08);
+      border-radius: 1rem;
+      padding: 1.1rem 1rem;
+      text-align: center;
+      transition: all 0.2s ease;
+      background: rgba(255,255,255,0.03);
+      user-select: none;
+    }
+    .rol-card:hover {
+      border-color: rgba(99,102,241,0.5);
+      background: rgba(99,102,241,0.06);
+    }
+    .rol-card.selected {
+      border-color: #6366f1;
+      background: rgba(99,102,241,0.12);
+      box-shadow: 0 0 0 1px #6366f1;
+    }
+    .rol-card .icon {
+      font-size: 1.75rem;
+      margin-bottom: 0.4rem;
+    }
+    .rol-card .rol-name {
+      color: #f1f5f9;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .rol-card .rol-desc {
+      color: #64748b;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      line-height: 1.4;
+    }
+    .rol-card.selected .rol-desc { color: #94a3b8; }
+
+    /* GRID FIELDS */
+    .fields-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .field-full { grid-column: 1 / -1; }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .field label {
+      color: #cbd5e1;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .field input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0.625rem;
+      padding: 0.7rem 0.9rem;
+      color: #f1f5f9;
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      width: 100%;
+    }
+    .field input::placeholder { color: #475569; }
+    .field input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    }
+
+    .btn-submit {
+      width: 100%;
+      margin-top: 1.5rem;
+      padding: 0.85rem;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.01em;
+    }
+    .btn-submit:hover { background: #4f46e5; }
+    .btn-submit:active { transform: scale(0.98); }
+
+    .footer-link {
+      text-align: center;
+      margin-top: 1.25rem;
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+    .footer-link a {
+      color: #818cf8;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .footer-link a:hover { color: #a5b4fc; }
+
+    @media (max-width: 480px) {
+      .fields-grid { grid-template-columns: 1fr; }
+      .field-full { grid-column: 1; }
+      .card { padding: 2rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <!-- Logo -->
+  <div class="logo">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="48" rx="14" fill="#6366f1"/>
+      <path d="M14 18h20M14 24h20M14 30h12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="36" cy="30" r="5" fill="#22d3ee" stroke="#0f172a" stroke-width="1.5"/>
+      <path d="M34 30l1.5 1.5L38 28" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1>UniMarket</h1>
+    <p>Crea tu cuenta para comenzar</p>
+  </div>
+
+  <form action="/register" method="POST" id="formRegister">
+    <!-- Selección de rol -->
+    <div class="rol-label">¿Cómo quieres usar UniMarket?</div>
+    <div class="rol-options">
+      <div class="rol-card" onclick="selectRol(this, 3)">
+        <div class="icon">🛒</div>
+        <div class="rol-name">Comprador</div>
+        <div class="rol-desc">Explora y compra productos en el mercado universitario</div>
+      </div>
+      <div class="rol-card" onclick="selectRol(this, 2)">
+        <div class="icon">🏪</div>
+        <div class="rol-name">Vendedor</div>
+        <div class="rol-desc">Publica y vende tus productos a la comunidad</div>
+      </div>
+    </div>
+    <input type="hidden" name="id_rol" id="id_rol" value="">
+
+    <!-- Campos -->
+    <div class="fields-grid">
+      <div class="field field-full">
+        <label for="nombre">Nombre completo</label>
+        <input type="text" id="nombre" name="nombre" placeholder="Ej: Carlos Ramírez" required>
+      </div>
+      <div class="field field-full">
+        <label for="correo">Correo electrónico</label>
+        <input type="email" id="correo" name="correo" placeholder="tu@unimarket.edu" required>
+      </div>
+      <div class="field">
+        <label for="contrasena">Contraseña</label>
+        <input type="password" id="contrasena" name="contrasena" placeholder="Mínimo 6 caracteres" required>
+      </div>
+      <div class="field">
+        <label for="telefono">Teléfono</label>
+        <input type="tel" id="telefono" name="telefono" placeholder="Ej: 3001234567" required>
+      </div>
+      <div class="field field-full">
+        <label for="facultad">Facultad</label>
+        <input type="text" id="facultad" name="facultad" placeholder="Ej: Ingeniería de Sistemas" required>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit">Crear cuenta</button>
+  </form>
+
+  <div class="footer-link">
+    ¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>
+  </div>
+</div>
+
+<script>
+  function selectRol(card, rolId) {
+    document.querySelectorAll('.rol-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    document.getElementById('id_rol').value = rolId;
+  }
+
+  document.getElementById('formRegister').addEventListener('submit', function(e) {
+    if (!document.getElementById('id_rol').value) {
+      e.preventDefault();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Selecciona un rol',
+        text: '¿Eres Comprador o Vendedor?',
+        confirmButtonColor: '#6366f1'
+      });
+    }
+  });
+</script>
+
+<% if (typeof alert !== 'undefined' && alert) { %>
+<script>
+  Swal.fire({
+    icon: '<%= alertIcon %>',
+    title: '<%= alertTitle %>',
+    text: '<%= alertMessage %>',
+    showConfirmButton: <%= showConfirmButton %>,
+    timer: <%= timer || 0 %>,
+    confirmButtonColor: '#6366f1'
+  }).then(() => {
+    <% if (ruta) { %> window.location.href = '/<%= ruta %>'; <% } %>
+  });
+</script>
+<% } %>
+
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniMarket — Checkout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --primary:#4f46e5;
+      --primary-light:#e0e7ff;
+      --bg:#f8fafc;
+      --surface:#fff;
+      --border:#e2e8f0;
+      --text:#0f172a;
+      --muted:#64748b;
+      --radius:1rem
+    }
+
+    body{
+      font-family:'Inter',sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      min-height:100vh
+    }
+
+    nav{
+      background:var(--surface);
+      border-bottom:1px solid var(--border);
+      position:sticky;
+      top:0;
+      z-index:100;
+      padding:0 2rem;
+      height:64px;
+      display:flex;
+      align-items:center;
+      gap:1rem;
+      box-shadow:0 1px 8px rgba(0,0,0,.06)
+    }
+
+    .nav-logo{display:flex;align-items:center;gap:.5rem;text-decoration:none}
+    .nav-logo span{font-size:1.15rem;font-weight:700;color:var(--primary)}
+    .nav-right{margin-left:auto}
+
+    .btn-back{
+      background:none;
+      border:1.5px solid var(--border);
+      border-radius:2rem;
+      padding:.4rem 1rem;
+      font-size:.8rem;
+      font-weight:500;
+      color:var(--muted);
+      text-decoration:none;
+      transition:all .2s
+    }
+
+    .btn-back:hover{border-color:var(--primary);color:var(--primary)}
+
+    .steps{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:0;
+      padding:1.5rem 2rem;
+      max-width:600px;
+      margin:0 auto
+    }
+
+    .step{display:flex;flex-direction:column;align-items:center;gap:.35rem;flex:1}
+
+    .step-circle{
+      width:36px;
+      height:36px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:.8rem;
+      font-weight:700;
+      border:2px solid var(--border);
+      background:var(--surface);
+      color:var(--muted);
+      transition:all .3s
+    }
+
+    .step.active .step-circle{
+      background:var(--primary);
+      border-color:var(--primary);
+      color:#fff
+    }
+
+    .step-label{
+      font-size:.72rem;
+      font-weight:600;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.04em
+    }
+
+    .step.active .step-label{color:var(--primary)}
+    .step-line{height:2px;flex:1;background:var(--border);margin-bottom:1.2rem}
+
+    main{
+      max-width:1100px;
+      margin:0 auto;
+      padding:1.5rem;
+      display:grid;
+      grid-template-columns:1fr 360px;
+      gap:1.5rem
+    }
+
+    .card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:1.5rem;
+      margin-bottom:1.25rem
+    }
+
+    .card-title{
+      font-size:.75rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      color:var(--muted);
+      margin-bottom:1.25rem
+    }
+
+    .modalidad-options{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:.75rem;
+      margin-bottom:1.5rem
+    }
+
+    .modalidad-option{
+      border:2px solid var(--border);
+      border-radius:.85rem;
+      padding:1.25rem;
+      cursor:pointer;
+      transition:all .2s;
+      text-align:center
+    }
+
+    .modalidad-option:hover{border-color:var(--primary)}
+    .modalidad-option.selected{border-color:var(--primary);background:var(--primary-light)}
+    .modalidad-option input{display:none}
+    .modalidad-icon{font-size:2rem;margin-bottom:.5rem}
+    .modalidad-title{font-size:.9rem;font-weight:700;margin-bottom:.25rem}
+    .modalidad-desc{font-size:.75rem;color:var(--muted)}
+    .modalidad-option.selected .modalidad-desc{color:var(--primary)}
+
+    .form-group{margin-bottom:1rem}
+
+    .form-group label{
+      display:block;
+      font-size:.8rem;
+      font-weight:600;
+      margin-bottom:.4rem;
+      color:var(--text)
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea{
+      width:100%;
+      padding:.65rem .875rem;
+      border:1.5px solid var(--border);
+      border-radius:.6rem;
+      font-size:.875rem;
+      font-family:'Inter',sans-serif;
+      color:var(--text);
+      background:var(--surface);
+      outline:none;
+      transition:border-color .2s,box-shadow .2s
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus{
+      border-color:var(--primary);
+      box-shadow:0 0 0 3px rgba(79,70,229,.1)
+    }
+
+    .hidden{display:none}
+
+    .map-card{
+      margin-top:1rem;
+      border:1px solid var(--border);
+      border-radius:.9rem;
+      overflow:hidden;
+      background:#fff
+    }
+
+    #mapaPuntoEntrega{
+      width:100%;
+      height:320px;
+      min-height:320px
+    }
+
+    .leaflet-container{
+      width:100%;
+      height:320px
+    }
+
+    .leaflet-container img,
+    .leaflet-pane img,
+    .leaflet-tile{
+      max-width:none !important;
+    }
+
+    .map-info{
+      padding:1rem;
+      border-top:1px solid var(--border);
+      background:#fafbff
+    }
+
+    .map-info strong{
+      display:block;
+      margin-bottom:.35rem;
+      font-size:.9rem
+    }
+
+    .map-info p{
+      color:var(--muted);
+      font-size:.83rem;
+      line-height:1.5
+    }
+
+    .resumen-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:.6rem 0;
+      border-bottom:1px solid var(--border);
+      font-size:.85rem
+    }
+
+    .resumen-item:last-child{border-bottom:none}
+    .resumen-item .nombre{color:var(--muted);flex:1;padding-right:.5rem}
+    .resumen-item .precio{font-weight:600}
+
+    .resumen-total{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding-top:1rem;
+      margin-top:.5rem;
+      border-top:2px solid var(--border)
+    }
+
+    .resumen-total span:first-child{font-weight:700}
+    .resumen-total span:last-child{font-size:1.3rem;font-weight:700;color:var(--primary)}
+
+    .btn-continuar{
+      width:100%;
+      background:var(--primary);
+      color:#fff;
+      border:none;
+      border-radius:.85rem;
+      padding:1rem;
+      font-size:1rem;
+      font-weight:600;
+      cursor:pointer;
+      font-family:'Inter',sans-serif;
+      transition:background .2s;
+      margin-top:1rem;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:.5rem
+    }
+
+    .btn-continuar:hover{background:#4338ca}
+
+    @media(max-width:768px){
+      main{grid-template-columns:1fr}
+      nav{padding:0 1rem}
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/comprador" class="nav-logo">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="9" fill="#4f46e5"/>
+      <path d="M9 12h14M9 16h14M9 20h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="24" cy="20" r="4" fill="#06b6d4" stroke="#fff" stroke-width="1.5"/>
+    </svg>
+    <span>UniMarket</span>
+  </a>
+  <div class="nav-right">
+    <a href="/carrito" class="btn-back">← Volver al carrito</a>
+  </div>
+</nav>
+
+<div class="steps">
+  <div class="step active">
+    <div class="step-circle">1</div>
+    <div class="step-label">Entrega</div>
+  </div>
+  <div class="step-line"></div>
+  <div class="step">
+    <div class="step-circle">2</div>
+    <div class="step-label">Pago</div>
+  </div>
+  <div class="step-line"></div>
+  <div class="step">
+    <div class="step-circle">3</div>
+    <div class="step-label">Confirmación</div>
+  </div>
+</div>
+
+<main>
+  <div>
+    <form action="/checkout" method="POST" id="checkoutForm">
+      <div class="card">
+        <div class="card-title">¿Cómo quieres recibir tu pedido?</div>
+
+        <div class="modalidad-options">
+          <label class="modalidad-option" id="optRecogida">
+            <input type="radio" name="modalidad_entrega" value="recogida" required>
+            <div class="modalidad-icon">📍</div>
+            <div class="modalidad-title">Recogida en campus</div>
+            <div class="modalidad-desc">Recoge en un punto de encuentro</div>
+          </label>
+
+          <label class="modalidad-option" id="optDomicilio">
+            <input type="radio" name="modalidad_entrega" value="domicilio">
+            <div class="modalidad-icon">🏠</div>
+            <div class="modalidad-title">Domicilio</div>
+            <div class="modalidad-desc">Envío a tu dirección</div>
+          </label>
+        </div>
+
+        <div id="seccionRecogida" class="hidden">
+          <div class="form-group">
+            <label>Punto de encuentro</label>
+            <select name="id_punto_encuentro" id="selectPunto">
+              <option value="">Selecciona un punto...</option>
+              <% puntos.forEach(p => { %>
+                <option value="<%= p.id_punto %>"><%= p.nombre %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <div class="map-card">
+            <div id="mapaPuntoEntrega"></div>
+            <div class="map-info">
+              <strong id="puntoNombre">Selecciona un punto de encuentro</strong>
+              <p id="puntoDescripcion">Al escoger una opción, el mapa marcará su ubicación exacta.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="seccionDomicilio" class="hidden">
+          <div class="form-group">
+            <label>Dirección de entrega</label>
+            <input type="text" name="direccion_envio" placeholder="Ej: Cra 5 #10-20, Apto 301">
+          </div>
+          <div class="form-group">
+            <label>Barrio / Referencia</label>
+            <input type="text" name="referencia" placeholder="Ej: Cerca al parque central">
+          </div>
+          <div class="form-group">
+            <label>Teléfono de contacto</label>
+            <input type="text" name="telefono_contacto" placeholder="Ej: 3001234567" value="<%= user.telefono || '' %>">
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-continuar" id="btnContinuar" disabled>
+        Continuar al pago →
+      </button>
+    </form>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-title">Resumen del pedido</div>
+      <% carrito.forEach(item => { %>
+        <div class="resumen-item">
+          <span class="nombre"><%= item.nombre %> ×<%= item.cantidad %></span>
+          <span class="precio">$<%= Number(item.precio * item.cantidad).toLocaleString('es-CO') %></span>
+        </div>
+      <% }) %>
+      <div class="resumen-total">
+        <span>Total</span>
+        <span>$<%= Number(total).toLocaleString('es-CO') %></span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const puntosData = <%- JSON.stringify(puntos || []) %>;
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const optRecogida = document.getElementById('optRecogida')
+  const optDomicilio = document.getElementById('optDomicilio')
+  const radioRecogida = document.querySelector('input[value="recogida"]')
+  const radioDomicilio = document.querySelector('input[value="domicilio"]')
+  const seccionRecogida = document.getElementById('seccionRecogida')
+  const seccionDomicilio = document.getElementById('seccionDomicilio')
+  const btnContinuar = document.getElementById('btnContinuar')
+  const selectPunto = document.getElementById('selectPunto')
+
+  let mapaEntrega = null
+  let marcadorEntrega = null
+
+  const iconoPunto = L.icon({
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  })
+
+  function inicializarMapa() {
+    if (mapaEntrega) return
+
+    mapaEntrega = L.map('mapaPuntoEntrega').setView([11.2408, -74.1990], 15)
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mapaEntrega)
+
+    setTimeout(() => mapaEntrega.invalidateSize(), 200)
+  }
+
+  function seleccionarModalidad(tipo) {
+    optRecogida.classList.remove('selected')
+    optDomicilio.classList.remove('selected')
+    seccionRecogida.classList.add('hidden')
+    seccionDomicilio.classList.add('hidden')
+
+    if (tipo === 'recogida') {
+      optRecogida.classList.add('selected')
+      radioRecogida.checked = true
+      seccionRecogida.classList.remove('hidden')
+      btnContinuar.disabled = false
+
+      setTimeout(() => {
+        inicializarMapa()
+        mapaEntrega.invalidateSize()
+      }, 150)
+    } else {
+      optDomicilio.classList.add('selected')
+      radioDomicilio.checked = true
+      seccionDomicilio.classList.remove('hidden')
+      btnContinuar.disabled = false
+    }
+  }
+
+  optRecogida.addEventListener('click', () => seleccionarModalidad('recogida'))
+  optDomicilio.addEventListener('click', () => seleccionarModalidad('domicilio'))
+
+  selectPunto.addEventListener('change', function() {
+    const idSeleccionado = this.value
+    const punto = puntosData.find(p => String(p.id_punto) === String(idSeleccionado))
+
+    if (!punto) return
+
+    const lat = parseFloat(punto.latitud)
+    const lng = parseFloat(punto.longitud)
+
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return
+
+    inicializarMapa()
+
+    if (marcadorEntrega) {
+      mapaEntrega.removeLayer(marcadorEntrega)
+    }
+
+    marcadorEntrega = L.marker([lat, lng], { icon: iconoPunto }).addTo(mapaEntrega)
+      .bindPopup(`<strong>${punto.nombre}</strong><br>${punto.descripcion || 'Punto de encuentro'}`)
+      .openPopup()
+
+    mapaEntrega.setView([lat, lng], 18)
+
+    document.getElementById('puntoNombre').textContent = punto.nombre
+    document.getElementById('puntoDescripcion').textContent =
+      punto.descripcion || 'Ubicación del punto de encuentro seleccionado.'
+
+    setTimeout(() => mapaEntrega.invalidateSize(), 150)
+  })
+</script>
+</body>
+</html>
